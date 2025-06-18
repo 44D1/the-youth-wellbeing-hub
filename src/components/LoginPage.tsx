@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,23 +41,35 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <label htmlFor="email" className="block text-sm font-medium text-purple-700 mb-1">
+                Email Address
+              </label>
+              <p className="text-xs text-purple-600 mb-2">
+                Enter your email to access your personalized wellbeing dashboard
+              </p>
               <Input
+                id="email"
                 type="email"
-                placeholder="Your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/70 border-slate-200 focus:border-purple-300 focus:ring-purple-200"
+                className="bg-purple-50 border-purple-200 focus:border-purple-400 focus:ring-purple-300 text-purple-900 placeholder:text-purple-400"
                 required
               />
             </div>
             
             <div>
+              <label htmlFor="password" className="block text-sm font-medium text-purple-700 mb-1">
+                Password
+              </label>
+              <p className="text-xs text-purple-600 mb-2">
+                Create a secure password to protect your personal information
+              </p>
               <Input
+                id="password"
                 type="password"
-                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-white/70 border-slate-200 focus:border-purple-300 focus:ring-purple-200"
+                className="bg-purple-50 border-purple-200 focus:border-purple-400 focus:ring-purple-300 text-purple-900 placeholder:text-purple-400"
                 required
               />
             </div>

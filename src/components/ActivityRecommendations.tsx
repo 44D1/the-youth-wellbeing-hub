@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, Book, Smile, Star, Calendar } from 'lucide-react';
+import { Heart, Book, Smile, Star, Calendar, Phone } from 'lucide-react';
 import { MoodType } from './MoodCheckIn';
 
 interface Activity {
@@ -12,11 +12,13 @@ interface Activity {
   icon: React.ReactNode;
   duration: string;
   category: string;
+  action?: string;
 }
 
 interface ActivityRecommendationsProps {
   selectedMood: MoodType;
   onBackToMoodCheck: () => void;
+  onActivitySelect: (activityType: string) => void;
 }
 
 const getActivitiesForMood = (mood: MoodType): Activity[] => {
@@ -28,7 +30,8 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Gentle breathing techniques to help you feel calmer and more centered',
         icon: <Heart className="w-5 h-5" />,
         duration: '5-10 min',
-        category: 'Mindfulness'
+        category: 'Mindfulness',
+        action: 'breathing'
       },
       {
         id: 'journaling',
@@ -36,15 +39,17 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Write down your thoughts in a safe, private space',
         icon: <Book className="w-5 h-5" />,
         duration: '10-15 min',
-        category: 'Reflection'
+        category: 'Reflection',
+        action: 'journaling'
       },
       {
-        id: 'meditation',
-        title: 'Comfort Meditation',
-        description: 'A soothing meditation designed to provide emotional comfort',
-        icon: <Star className="w-5 h-5" />,
-        duration: '10-20 min',
-        category: 'Mindfulness'
+        id: 'support',
+        title: 'Get Support',
+        description: 'Access trusted helplines and support resources',
+        icon: <Phone className="w-5 h-5" />,
+        duration: 'Immediate',
+        category: 'Support',
+        action: 'support'
       }
     ],
     'sad': [
@@ -54,7 +59,8 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Basic breathing exercises to help lift your mood',
         icon: <Heart className="w-5 h-5" />,
         duration: '3-5 min',
-        category: 'Mindfulness'
+        category: 'Mindfulness',
+        action: 'breathing'
       },
       {
         id: 'gentle-journal',
@@ -62,15 +68,17 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Light journaling prompts to help process your feelings',
         icon: <Book className="w-5 h-5" />,
         duration: '5-10 min',
-        category: 'Reflection'
+        category: 'Reflection',
+        action: 'journaling'
       },
       {
-        id: 'self-care',
-        title: 'Self-Care Reminder',
-        description: 'Simple self-care activities to nurture yourself',
-        icon: <Smile className="w-5 h-5" />,
-        duration: '15-30 min',
-        category: 'Self-Care'
+        id: 'support',
+        title: 'Talk to Someone',
+        description: 'Connect with trusted adults and support services',
+        icon: <Phone className="w-5 h-5" />,
+        duration: 'Immediate',
+        category: 'Support',
+        action: 'support'
       }
     ],
     'neutral': [
@@ -88,15 +96,17 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Reflect on positive aspects of your day',
         icon: <Heart className="w-5 h-5" />,
         duration: '5-10 min',
-        category: 'Reflection'
+        category: 'Reflection',
+        action: 'journaling'
       },
       {
         id: 'quick-meditation',
         title: 'Quick Meditation',
-        description: 'Short meditation to center yourself',
+        description: 'Short guided breathing meditation',
         icon: <Smile className="w-5 h-5" />,
         duration: '5-10 min',
-        category: 'Mindfulness'
+        category: 'Mindfulness',
+        action: 'breathing'
       }
     ],
     'happy': [
@@ -106,7 +116,8 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Create a digital postcard to celebrate your positive mood',
         icon: <Smile className="w-5 h-5" />,
         duration: '5-10 min',
-        category: 'Social'
+        category: 'Social',
+        action: 'mood-sharing'
       },
       {
         id: 'goal-setting',
@@ -132,7 +143,8 @@ const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Create something special to remember this wonderful moment',
         icon: <Star className="w-5 h-5" />,
         duration: '10-20 min',
-        category: 'Celebration'
+        category: 'Celebration',
+        action: 'mood-sharing'
       },
       {
         id: 'daily-challenge',
@@ -182,11 +194,20 @@ const getMoodEmoji = (mood: MoodType): string => {
 
 const ActivityRecommendations: React.FC<ActivityRecommendationsProps> = ({
   selectedMood,
-  onBackToMoodCheck
+  onBackToMoodCheck,
+  onActivitySelect
 }) => {
   const activities = getActivitiesForMood(selectedMood);
   const moodMessage = getMoodMessage(selectedMood);
   const moodEmoji = getMoodEmoji(selectedMood);
+
+  const handleActivityClick = (activity: Activity) => {
+    if (activity.action) {
+      onActivitySelect(activity.action);
+    } else {
+      console.log(`Activity ${activity.id} not implemented yet`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
@@ -229,7 +250,10 @@ const ActivityRecommendations: React.FC<ActivityRecommendationsProps> = ({
                   <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
                     {activity.duration}
                   </span>
-                  <Button className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white">
+                  <Button 
+                    onClick={() => handleActivityClick(activity)}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                  >
                     Start Activity
                   </Button>
                 </div>
