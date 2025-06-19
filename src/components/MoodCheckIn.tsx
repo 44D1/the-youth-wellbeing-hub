@@ -56,6 +56,7 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({ onMoodSelect, userName }) => 
       toast({
         title: "Mood Saved",
         description: "Your mood has been recorded successfully!",
+        className: "bg-white border-green-200 text-slate-900",
       });
     } catch (error) {
       console.error('Error saving mood:', error);

@@ -93,7 +93,7 @@ const MoodChatbot: React.FC<MoodChatbotProps> = ({ mood, userName }) => {
       <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
               <Bot className="w-5 h-5 text-purple-500" />
               MindfulMe Assistant
             </CardTitle>
@@ -101,7 +101,7 @@ const MoodChatbot: React.FC<MoodChatbotProps> = ({ mood, userName }) => {
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(false)}
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 text-slate-600 hover:text-slate-800"
             >
               ×
             </Button>

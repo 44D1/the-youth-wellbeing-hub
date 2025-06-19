@@ -126,7 +126,7 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
               <h3 className="text-lg font-semibold text-slate-700 mb-4">Reflection Prompts</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {getPrompts().map((prompt, index) => (
-                  <div key={index} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <p className="text-slate-700 text-sm">{prompt}</p>
                   </div>
                 ))}
@@ -147,7 +147,7 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
                 value={journalEntry}
                 onChange={handleTextChange}
                 placeholder="Start writing your thoughts here..."
-                className="min-h-48 bg-white border-purple-200 focus:border-purple-400 resize-none text-black"
+                className="min-h-48 bg-white border-purple-200 focus:border-purple-400 resize-none text-slate-700 placeholder:text-slate-400"
               />
             </div>
 

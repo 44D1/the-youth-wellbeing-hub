@@ -29,6 +29,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ className }) => {
       toast({
         title: "Logged Out",
         description: "You have been successfully logged out.",
+        className: "bg-white border-slate-200 text-slate-900",
       });
     } catch (error) {
       console.error('Unexpected logout error:', error);
@@ -45,7 +46,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ className }) => {
       onClick={handleLogout}
       variant="outline"
       size="sm"
-      className={`flex items-center gap-2 ${className}`}
+      className={`flex items-center gap-2 bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900 ${className}`}
     >
       <LogOut className="w-4 h-4" />
       Logout
