@@ -36,6 +36,25 @@ const moodOptions: MoodOption[] = [
   { id: 'very-happy', emoji: '😄', label: 'Very Happy', color: 'from-green-400 to-green-500' },
 ];
 
+// Daily affirmations array
+const dailyAffirmations = [
+  "Today is full of possibilities - embrace every moment!",
+  "You have the strength to overcome any challenge that comes your way.",
+  "Your potential is limitless, and today is the day to show it!",
+  "Every step forward is progress, no matter how small.",
+  "You are capable of amazing things - believe in yourself!",
+  "Today is a fresh start to create something beautiful.",
+  "Your positive energy can change everything around you.",
+  "You are stronger than you think and braver than you feel.",
+  "This day is yours to make extraordinary!",
+  "You have everything within you to succeed today.",
+  "Your determination today shapes your tomorrow.",
+  "Choose joy, choose growth, choose to make today count!",
+  "You are the author of your own success story.",
+  "Today brings new opportunities to shine bright.",
+  "Your mindset is your superpower - use it wisely today!"
+];
+
 const MoodCheckIn: React.FC<MoodCheckInProps> = ({ 
   onMoodSelect, 
   onBackToMoodCheck, 
@@ -48,6 +67,12 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Get random daily affirmation
+  const getDailyAffirmation = () => {
+    const randomIndex = Math.floor(Math.random() * dailyAffirmations.length);
+    return dailyAffirmations[randomIndex];
+  };
 
   const saveMoodToDatabase = async (mood: MoodType) => {
     try {
@@ -215,6 +240,15 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({
                 Mood History Log
               </Button>
             )}
+          </div>
+          
+          {/* Daily Affirmation */}
+          <div className="mt-6 px-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-purple-200 shadow-sm max-w-2xl mx-auto">
+              <p className="text-lg font-medium text-slate-800 leading-relaxed">
+                💫 {getDailyAffirmation()}
+              </p>
+            </div>
           </div>
         </div>
       </div>

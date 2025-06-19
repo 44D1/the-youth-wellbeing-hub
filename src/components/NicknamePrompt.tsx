@@ -33,7 +33,7 @@ const NicknamePrompt: React.FC<NicknamePromptProps> = ({ onNicknameSet, currentN
           <CardTitle className="text-2xl text-slate-700">
             What should we call you?
           </CardTitle>
-          <p className="text-slate-600">
+          <p className="text-slate-700">
             Choose a nickname to personalize your experience
           </p>
         </CardHeader>
@@ -45,7 +45,7 @@ const NicknamePrompt: React.FC<NicknamePromptProps> = ({ onNicknameSet, currentN
                 placeholder={`Enter your nickname (or we'll use "${currentName}")`}
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
-                className="text-center text-lg"
+                className="text-center text-lg text-slate-700"
                 maxLength={20}
               />
             </div>
@@ -54,13 +54,13 @@ const NicknamePrompt: React.FC<NicknamePromptProps> = ({ onNicknameSet, currentN
                 type="button"
                 variant="outline"
                 onClick={handleSkip}
-                className="flex-1"
+                className="flex-1 text-slate-700 border-slate-300 hover:bg-slate-50"
               >
                 Skip
               </Button>
               <Button
                 type="submit"
-                className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
               >
                 Continue
               </Button>
