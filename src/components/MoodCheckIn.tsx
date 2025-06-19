@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import MoodChatbot from './MoodChatbot';
 import LogoutButton from './LogoutButton';
+import DailyBadge from './DailyBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,6 +22,8 @@ interface MoodCheckInProps {
   onMoodSelect: (mood: MoodType) => void;
   onBackToMoodCheck?: () => void;
   onOpenAIChat?: () => void;
+  onOpenMoodHistory?: () => void;
+  onOpenResources?: () => void;
   userName?: string;
   showBackButton?: boolean;
 }
@@ -37,6 +40,8 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({
   onMoodSelect, 
   onBackToMoodCheck, 
   onOpenAIChat, 
+  onOpenMoodHistory,
+  onOpenResources,
   userName, 
   showBackButton = false 
 }) => {
@@ -103,21 +108,26 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header with back button and logout button */}
+        {/* Header with badge, back button and logout button */}
         <div className="flex justify-between items-start mb-8">
-          {showBackButton && onBackToMoodCheck && (
-            <Button
-              onClick={onBackToMoodCheck}
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-800"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-          )}
+          {/* Left side - Badge and Back button */}
+          <div className="flex items-center gap-4">
+            <DailyBadge />
+            {showBackButton && onBackToMoodCheck && (
+              <Button
+                onClick={onBackToMoodCheck}
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-2 text-slate-600 hover:text-slate-800"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+            )}
+          </div>
           
-          <div className="text-center flex-1">
+          {/* Center - Welcome message */}
+          <div className="text-center flex-1 mx-8">
             <div className="bg-white px-6 py-3 rounded-lg shadow-sm border border-slate-200 inline-block mb-4">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-700 mb-2">
                 Welcome back{userName ? `, ${userName}` : ''}! 
@@ -128,7 +138,8 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({
             </div>
           </div>
           
-          <LogoutButton className="ml-4" />
+          {/* Right side - Logout button */}
+          <LogoutButton />
         </div>
 
         <Card className="bg-white/70 backdrop-blur-sm border-white/50 shadow-xl">
@@ -176,14 +187,35 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({
             Your mood check-ins help us provide personalized support for your wellbeing journey
           </p>
           
-          {onOpenAIChat && (
-            <Button
-              onClick={onOpenAIChat}
-              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg"
-            >
-              Chat with our Helper AI
-            </Button>
-          )}
+          {/* Button row */}
+          <div className="flex justify-center gap-4 flex-wrap">
+            {onOpenResources && (
+              <Button
+                onClick={onOpenResources}
+                className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900 px-6 py-3 rounded-lg font-medium shadow-sm"
+              >
+                Mental Health Resources
+              </Button>
+            )}
+            
+            {onOpenAIChat && (
+              <Button
+                onClick={onOpenAIChat}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg"
+              >
+                Chat with our Helper AI
+              </Button>
+            )}
+            
+            {onOpenMoodHistory && (
+              <Button
+                onClick={onOpenMoodHistory}
+                className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900 px-6 py-3 rounded-lg font-medium shadow-sm"
+              >
+                Mood History Log
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

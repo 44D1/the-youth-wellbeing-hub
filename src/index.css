@@ -126,3 +126,25 @@
 .activity-card {
   @apply bg-gradient-to-br from-white to-blue-50 rounded-lg p-4 border border-blue-100 hover:border-blue-200 transition-all duration-300 hover:shadow-md;
 }
+
+/* Ensure text in routine tracking and other activities is readable */
+.activity-card input,
+.activity-card textarea,
+.activity-card label,
+.activity-card p,
+.activity-card h1,
+.activity-card h2,
+.activity-card h3,
+.activity-card h4,
+.activity-card h5,
+.activity-card h6 {
+  @apply text-slate-700;
+}
+
+/* Fix for routine tracking activity specifically */
+.bg-gradient-to-br input,
+.bg-gradient-to-br textarea,
+.bg-gradient-to-br label,
+.bg-gradient-to-br p:not(.text-white):not(.text-slate-50):not(.text-gray-50) {
+  @apply text-slate-700 !important;
+}

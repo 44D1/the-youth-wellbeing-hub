@@ -4,6 +4,9 @@ import LoginPage from '@/components/LoginPage';
 import MoodCheckIn from '@/components/MoodCheckIn';
 import ActivityRecommendations from '@/components/ActivityRecommendations';
 import AIChatScreen from '@/components/AIChatScreen';
+import MoodHistoryPage from '@/components/MoodHistoryPage';
+import MentalHealthResources from '@/components/MentalHealthResources';
+import NicknamePrompt from '@/components/NicknamePrompt';
 import JournalingActivity from '@/components/activities/JournalingActivity';
 import BreathingActivity from '@/components/activities/BreathingActivity';
 import MoodSharingActivity from '@/components/activities/MoodSharingActivity';
@@ -17,7 +20,7 @@ import { MoodType } from '@/components/MoodCheckIn';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-type AppState = 'login' | 'mood-check' | 'activities' | 'ai-chat' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
+type AppState = 'login' | 'nickname-prompt' | 'mood-check' | 'activities' | 'ai-chat' | 'mood-history' | 'resources' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
 
 const Index = () => {
   const [appState, setAppState] = useState<AppState>('login');
@@ -26,6 +29,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasSetNickname, setHasSetNickname] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
@@ -36,13 +40,25 @@ const Index = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          setCurrentUser(session.user.email?.split('@')[0] || '');
-          setAppState('mood-check');
+          const emailName = session.user.email?.split('@')[0] || '';
+          setCurrentUser(emailName);
+          
+          // Check if user has set a nickname
+          const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
+          if (savedNickname) {
+            setCurrentUser(savedNickname);
+            setHasSetNickname(true);
+            setAppState('mood-check');
+          } else {
+            setHasSetNickname(false);
+            setAppState('nickname-prompt');
+          }
         } else {
           // User logged out or not authenticated
           setAppState('login');
           setCurrentUser('');
           setSelectedMood(null);
+          setHasSetNickname(false);
         }
         setIsLoading(false);
       }
@@ -55,8 +71,19 @@ const Index = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        setCurrentUser(session.user.email?.split('@')[0] || '');
-        setAppState('mood-check');
+        const emailName = session.user.email?.split('@')[0] || '';
+        setCurrentUser(emailName);
+        
+        // Check if user has set a nickname
+        const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
+        if (savedNickname) {
+          setCurrentUser(savedNickname);
+          setHasSetNickname(true);
+          setAppState('mood-check');
+        } else {
+          setHasSetNickname(false);
+          setAppState('nickname-prompt');
+        }
       } else {
         setAppState('login');
       }
@@ -70,6 +97,15 @@ const Index = () => {
     console.log('Login handler called for:', email);
     // The actual login is handled in LoginPage component
     // This is just for any additional logic if needed
+  };
+
+  const handleNicknameSet = (nickname: string) => {
+    if (user) {
+      localStorage.setItem(`nickname_${user.id}`, nickname);
+      setCurrentUser(nickname);
+      setHasSetNickname(true);
+      setAppState('mood-check');
+    }
   };
 
   const handleMoodSelect = (mood: MoodType) => {
@@ -88,6 +124,14 @@ const Index = () => {
 
   const handleCloseAIChat = () => {
     setAppState('mood-check');
+  };
+
+  const handleOpenMoodHistory = () => {
+    setAppState('mood-history');
+  };
+
+  const handleOpenResources = () => {
+    setAppState('resources');
   };
 
   const handleActivitySelect = (activityType: string) => {
@@ -145,11 +189,20 @@ const Index = () => {
     switch (appState) {
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
+      case 'nickname-prompt':
+        return (
+          <NicknamePrompt
+            onNicknameSet={handleNicknameSet}
+            currentName={currentUser}
+          />
+        );
       case 'mood-check':
         return (
           <MoodCheckIn
             onMoodSelect={handleMoodSelect}
             onOpenAIChat={handleOpenAIChat}
+            onOpenMoodHistory={handleOpenMoodHistory}
+            onOpenResources={handleOpenResources}
             userName={currentUser}
           />
         );
@@ -158,6 +211,18 @@ const Index = () => {
           <AIChatScreen
             onClose={handleCloseAIChat}
             userName={currentUser}
+          />
+        );
+      case 'mood-history':
+        return (
+          <MoodHistoryPage
+            onBack={handleBackToMoodCheck}
+          />
+        );
+      case 'resources':
+        return (
+          <MentalHealthResources
+            onBack={handleBackToMoodCheck}
           />
         );
       case 'activities':
