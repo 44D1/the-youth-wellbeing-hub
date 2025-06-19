@@ -37,6 +37,7 @@ const Index = () => {
           setCurrentUser(session.user.email?.split('@')[0] || '');
           setAppState('mood-check');
         } else {
+          // User logged out or not authenticated
           setAppState('login');
           setCurrentUser('');
           setSelectedMood(null);
