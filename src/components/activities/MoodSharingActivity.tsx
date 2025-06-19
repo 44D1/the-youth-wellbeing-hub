@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface JoyfulMoment {
   id: string;
@@ -21,6 +23,9 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
   const [message, setMessage] = useState('');
   const [selectedBackground, setSelectedBackground] = useState('bg-gradient-to-br from-pink-400 to-purple-500');
   const [savedMoments, setSavedMoments] = useState<JoyfulMoment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const backgrounds = [
     'bg-gradient-to-br from-pink-400 to-purple-500',
@@ -29,6 +34,49 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
     'bg-gradient-to-br from-blue-400 to-purple-500',
     'bg-gradient-to-br from-emerald-400 to-cyan-500'
   ];
+
+  useEffect(() => {
+    loadSavedMoments();
+  }, []);
+
+  const loadSavedMoments = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('mood_shares')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading mood shares:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load previous moments.",
+          variant: "destructive",
+        });
+      } else {
+        const formattedMoments = data?.map(entry => ({
+          id: entry.id,
+          message: entry.message,
+          background: entry.background_style,
+          date: formatDate(new Date(entry.created_at).getTime()),
+          timestamp: new Date(entry.created_at).getTime()
+        })) || [];
+        setSavedMoments(formattedMoments);
+      }
+    } catch (error) {
+      console.error('Error loading mood shares:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -80,21 +128,72 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
     }
   };
 
-  const handleSave = () => {
-    if (message.trim()) {
+  const handleSave = async () => {
+    if (!message.trim()) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('mood_shares')
+        .insert({
+          user_id: user.id,
+          message: message.trim(),
+          background_style: selectedBackground
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
       const newMoment: JoyfulMoment = {
-        id: Date.now().toString(),
-        message: message,
-        background: selectedBackground,
-        date: formatDate(Date.now()),
-        timestamp: Date.now()
+        id: data.id,
+        message: data.message,
+        background: data.background_style,
+        date: formatDate(new Date(data.created_at).getTime()),
+        timestamp: new Date(data.created_at).getTime()
       };
+
       setSavedMoments([newMoment, ...savedMoments]);
       setMessage('');
+
+      toast({
+        title: "Moment Saved",
+        description: "Your joyful moment has been saved successfully!",
+        className: "bg-white border-green-200 text-slate-900",
+      });
+    } catch (error) {
+      console.error('Error saving mood share:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your moment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const sortedMoments = [...savedMoments].sort((a, b) => b.timestamp - a.timestamp);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-purple-600">Loading your moments...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
@@ -173,17 +272,18 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
                 onClick={handleSave}
                 variant="outline"
                 className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                disabled={!message.trim() || isSaving}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
             </div>
 
-            {sortedMoments.length > 0 && (
+            {savedMoments.length > 0 && (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4">Previous Joyful Moments</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {sortedMoments.map((moment) => (
+                  {savedMoments.map((moment) => (
                     <div key={moment.id} className="bg-white rounded-lg p-4 shadow-sm border">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-sm font-medium text-purple-700">{moment.date}</span>
