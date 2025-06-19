@@ -80,7 +80,8 @@ export const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Gentle movements to energize your body and mind',
         icon: React.createElement(Star, { className: "w-5 h-5" }),
         duration: '10-15 min',
-        category: 'Movement'
+        category: 'Movement',
+        action: 'stretching'
       },
       {
         id: 'gratitude',
@@ -117,15 +118,17 @@ export const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Channel your positive energy into achieving something today',
         icon: React.createElement(Star, { className: "w-5 h-5" }),
         duration: '10-15 min',
-        category: 'Growth'
+        category: 'Growth',
+        action: 'goal-setting'
       },
       {
-        id: 'habit-tracker',
-        title: 'Track Your Habits',
-        description: 'Update your daily habits and celebrate your progress',
+        id: 'routine-tracker',
+        title: 'Track Your Routine',
+        description: 'Update your daily routines and celebrate your progress',
         icon: React.createElement(Calendar, { className: "w-5 h-5" }),
         duration: '5 min',
-        category: 'Growth'
+        category: 'Growth',
+        action: 'routine-tracking'
       }
     ],
     'very-happy': [
@@ -144,7 +147,8 @@ export const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Take on an exciting challenge while you\'re feeling great',
         icon: React.createElement(Smile, { className: "w-5 h-5" }),
         duration: '15-30 min',
-        category: 'Growth'
+        category: 'Growth',
+        action: 'daily-challenge'
       },
       {
         id: 'music-playlist',
@@ -152,7 +156,8 @@ export const getActivitiesForMood = (mood: MoodType): Activity[] => {
         description: 'Listen to music that matches your amazing energy',
         icon: React.createElement(Heart, { className: "w-5 h-5" }),
         duration: '20-30 min',
-        category: 'Entertainment'
+        category: 'Entertainment',
+        action: 'playlist'
       }
     ]
   };

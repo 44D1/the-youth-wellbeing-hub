@@ -112,25 +112,25 @@ const BreathingActivity: React.FC<BreathingActivityProps> = ({ onBack }) => {
                 </Button>
               </div>
 
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-purple-700 mb-2">Breathing Exercise Videos</h3>
-                <p className="text-purple-600 mb-4">Watch these guided breathing exercises for additional support:</p>
+              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Breathing Exercise Videos</h3>
+                <p className="text-slate-600 mb-4">Watch these guided breathing exercises for additional support:</p>
                 <div className="space-y-2">
                   <a 
                     href="https://www.youtube.com/watch?v=ZhJyFpKTrCw" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="block p-3 bg-white rounded border border-purple-200 hover:bg-purple-50 transition-colors"
+                    className="block p-3 bg-white rounded border border-blue-300 hover:bg-blue-50 transition-colors"
                   >
-                    🎥 4-7-8 Breathing Technique for Anxiety Relief
+                    <span className="text-slate-700">🎥 4-7-8 Breathing Technique for Anxiety Relief</span>
                   </a>
                   <a 
                     href="https://www.youtube.com/watch?v=YRPh_GaiL8s" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="block p-3 bg-white rounded border border-purple-200 hover:bg-purple-50 transition-colors"
+                    className="block p-3 bg-white rounded border border-blue-300 hover:bg-blue-50 transition-colors"
                   >
-                    🎥 5-Minute Guided Breathing for Calm
+                    <span className="text-slate-700">🎥 5-Minute Guided Breathing for Calm</span>
                   </a>
                 </div>
               </div>

@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Heart, Save } from 'lucide-react';
 
+interface JournalingEntry {
+  id: string;
+  content: string;
+  date: string;
+  timestamp: number;
+}
+
 interface JournalingActivityProps {
   onBack: () => void;
   mood: 'very-sad' | 'sad' | 'neutral' | 'happy' | 'very-happy';
@@ -12,7 +19,8 @@ interface JournalingActivityProps {
 
 const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood }) => {
   const [journalEntry, setJournalEntry] = useState('');
-  const [savedEntries, setSavedEntries] = useState<string[]>([]);
+  const [savedEntries, setSavedEntries] = useState<JournalingEntry[]>([]);
+  const [wordCount, setWordCount] = useState(0);
 
   const getPrompts = () => {
     const prompts = {
@@ -50,12 +58,43 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
     return prompts[mood];
   };
 
-  const handleSave = () => {
-    if (journalEntry.trim()) {
-      setSavedEntries([...savedEntries, journalEntry]);
-      setJournalEntry('');
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const day = date.getDate();
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    
+    if (words.length <= 500) {
+      setJournalEntry(text);
+      setWordCount(words.length);
     }
   };
+
+  const handleSave = () => {
+    if (journalEntry.trim()) {
+      const newEntry: JournalingEntry = {
+        id: Date.now().toString(),
+        content: journalEntry,
+        date: formatDate(Date.now()),
+        timestamp: Date.now()
+      };
+      setSavedEntries([newEntry, ...savedEntries]);
+      setJournalEntry('');
+      setWordCount(0);
+    }
+  };
+
+  const sortedEntries = [...savedEntries].sort((a, b) => b.timestamp - a.timestamp);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
@@ -87,23 +126,28 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
               <h3 className="text-lg font-semibold text-slate-700 mb-4">Reflection Prompts</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {getPrompts().map((prompt, index) => (
-                  <div key={index} className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-                    <p className="text-purple-700 text-sm">{prompt}</p>
+                  <div key={index} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-slate-700 text-sm">{prompt}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             <div>
-              <label htmlFor="journal" className="block text-lg font-semibold text-slate-700 mb-2">
-                Your Thoughts
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label htmlFor="journal" className="block text-lg font-semibold text-slate-700">
+                  Your Thoughts
+                </label>
+                <span className="text-sm text-slate-500">
+                  {wordCount}/500 words
+                </span>
+              </div>
               <Textarea
                 id="journal"
                 value={journalEntry}
-                onChange={(e) => setJournalEntry(e.target.value)}
+                onChange={handleTextChange}
                 placeholder="Start writing your thoughts here..."
-                className="min-h-48 bg-white border-purple-200 focus:border-purple-400 resize-none"
+                className="min-h-48 bg-white border-purple-200 focus:border-purple-400 resize-none text-black"
               />
             </div>
 
@@ -118,13 +162,16 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
               </Button>
             </div>
 
-            {savedEntries.length > 0 && (
+            {sortedEntries.length > 0 && (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4">Your Previous Reflections</h3>
                 <div className="space-y-4">
-                  {savedEntries.map((entry, index) => (
-                    <div key={index} className="p-4 bg-green-50 rounded-lg border border-green-100">
-                      <p className="text-slate-700 whitespace-pre-wrap">{entry}</p>
+                  {sortedEntries.map((entry) => (
+                    <div key={entry.id} className="p-4 bg-green-50 rounded-lg border border-green-100">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm font-medium text-green-700">{entry.date}</span>
+                      </div>
+                      <p className="text-slate-700 whitespace-pre-wrap">{entry.content}</p>
                     </div>
                   ))}
                 </div>

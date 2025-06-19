@@ -7,11 +7,16 @@ import JournalingActivity from '@/components/activities/JournalingActivity';
 import BreathingActivity from '@/components/activities/BreathingActivity';
 import MoodSharingActivity from '@/components/activities/MoodSharingActivity';
 import SupportActivity from '@/components/activities/SupportActivity';
+import StretchingActivity from '@/components/activities/StretchingActivity';
+import GoalSettingActivity from '@/components/activities/GoalSettingActivity';
+import RoutineTrackingActivity from '@/components/activities/RoutineTrackingActivity';
+import DailyChallengeActivity from '@/components/activities/DailyChallengeActivity';
+import PlaylistActivity from '@/components/activities/PlaylistActivity';
 import { MoodType } from '@/components/MoodCheckIn';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-type AppState = 'login' | 'mood-check' | 'activities' | 'journaling' | 'breathing' | 'mood-sharing' | 'support';
+type AppState = 'login' | 'mood-check' | 'activities' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
 
 const Index = () => {
   const [appState, setAppState] = useState<AppState>('login');
@@ -41,7 +46,6 @@ const Index = () => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -59,7 +63,6 @@ const Index = () => {
   }, []);
 
   const handleLogin = (email: string) => {
-    // This will be handled by the auth state change listener
     console.log('Login handler called for:', email);
   };
 
@@ -86,6 +89,21 @@ const Index = () => {
         break;
       case 'support':
         setAppState('support');
+        break;
+      case 'stretching':
+        setAppState('stretching');
+        break;
+      case 'goal-setting':
+        setAppState('goal-setting');
+        break;
+      case 'routine-tracking':
+        setAppState('routine-tracking');
+        break;
+      case 'daily-challenge':
+        setAppState('daily-challenge');
+        break;
+      case 'playlist':
+        setAppState('playlist');
         break;
       default:
         console.log(`Activity ${activityType} not implemented yet`);
@@ -148,6 +166,36 @@ const Index = () => {
       case 'support':
         return (
           <SupportActivity
+            onBack={handleBackToActivities}
+          />
+        );
+      case 'stretching':
+        return (
+          <StretchingActivity
+            onBack={handleBackToActivities}
+          />
+        );
+      case 'goal-setting':
+        return (
+          <GoalSettingActivity
+            onBack={handleBackToActivities}
+          />
+        );
+      case 'routine-tracking':
+        return (
+          <RoutineTrackingActivity
+            onBack={handleBackToActivities}
+          />
+        );
+      case 'daily-challenge':
+        return (
+          <DailyChallengeActivity
+            onBack={handleBackToActivities}
+          />
+        );
+      case 'playlist':
+        return (
+          <PlaylistActivity
             onBack={handleBackToActivities}
           />
         );
