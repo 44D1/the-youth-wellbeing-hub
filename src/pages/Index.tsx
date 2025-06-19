@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import LoginPage from '@/components/LoginPage';
 import MoodCheckIn from '@/components/MoodCheckIn';
@@ -46,7 +45,9 @@ const Index = () => {
       }
     );
 
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -64,6 +65,8 @@ const Index = () => {
 
   const handleLogin = (email: string) => {
     console.log('Login handler called for:', email);
+    // The actual login is handled in LoginPage component
+    // This is just for any additional logic if needed
   };
 
   const handleMoodSelect = (mood: MoodType) => {
@@ -126,6 +129,8 @@ const Index = () => {
   }
 
   const renderCurrentView = () => {
+    console.log('Current app state:', appState, 'User:', user);
+    
     switch (appState) {
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
