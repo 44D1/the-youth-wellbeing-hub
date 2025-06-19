@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import LoginPage from '@/components/LoginPage';
 import MoodCheckIn from '@/components/MoodCheckIn';
@@ -31,6 +30,14 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasSetNickname, setHasSetNickname] = useState(false);
 
+  const checkIfFirstTimeUser = (userId: string) => {
+    // Check if user has completed initial setup
+    const hasCompletedSetup = localStorage.getItem(`setup_completed_${userId}`);
+    const savedNickname = localStorage.getItem(`nickname_${userId}`);
+    
+    return !hasCompletedSetup && !savedNickname;
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -41,17 +48,21 @@ const Index = () => {
         
         if (session?.user) {
           const emailName = session.user.email?.split('@')[0] || '';
-          setCurrentUser(emailName);
           
-          // Check if user has set a nickname
-          const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
-          if (savedNickname) {
-            setCurrentUser(savedNickname);
-            setHasSetNickname(true);
-            setAppState('mood-check');
-          } else {
+          // Check if this is the user's first time
+          const isFirstTime = checkIfFirstTimeUser(session.user.id);
+          
+          if (isFirstTime) {
+            // First time user - show nickname prompt
+            setCurrentUser(emailName);
             setHasSetNickname(false);
             setAppState('nickname-prompt');
+          } else {
+            // Returning user - use saved nickname or email name
+            const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
+            setCurrentUser(savedNickname || emailName);
+            setHasSetNickname(true);
+            setAppState('mood-check');
           }
         } else {
           // User logged out or not authenticated
@@ -72,17 +83,21 @@ const Index = () => {
       
       if (session?.user) {
         const emailName = session.user.email?.split('@')[0] || '';
-        setCurrentUser(emailName);
         
-        // Check if user has set a nickname
-        const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
-        if (savedNickname) {
-          setCurrentUser(savedNickname);
-          setHasSetNickname(true);
-          setAppState('mood-check');
-        } else {
+        // Check if this is the user's first time
+        const isFirstTime = checkIfFirstTimeUser(session.user.id);
+        
+        if (isFirstTime) {
+          // First time user - show nickname prompt
+          setCurrentUser(emailName);
           setHasSetNickname(false);
           setAppState('nickname-prompt');
+        } else {
+          // Returning user - use saved nickname or email name
+          const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
+          setCurrentUser(savedNickname || emailName);
+          setHasSetNickname(true);
+          setAppState('mood-check');
         }
       } else {
         setAppState('login');
@@ -101,7 +116,11 @@ const Index = () => {
 
   const handleNicknameSet = (nickname: string) => {
     if (user) {
+      // Save the nickname
       localStorage.setItem(`nickname_${user.id}`, nickname);
+      // Mark setup as completed so nickname prompt won't show again
+      localStorage.setItem(`setup_completed_${user.id}`, 'true');
+      
       setCurrentUser(nickname);
       setHasSetNickname(true);
       setAppState('mood-check');
