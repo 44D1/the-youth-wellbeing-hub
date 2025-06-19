@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,7 +103,7 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
             </div>
             <div>
               <h1 className="text-xl font-semibold text-white">AI Wellness Companion</h1>
-              <p className="text-sm text-gray-300">Here to support your mental wellbeing</p>
+              <p className="text-sm text-white">Here to support your mental wellbeing</p>
             </div>
           </div>
           <Button
@@ -136,7 +135,7 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
                     className={`max-w-[70%] p-4 rounded-lg ${
                       message.sender === 'user'
                         ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white ml-auto'
-                        : 'bg-gray-700 text-gray-100'
+                        : 'bg-gray-700 text-white'
                     }`}
                   >
                     <p className="text-sm leading-relaxed">{message.text}</p>
