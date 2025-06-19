@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import { MoodType } from './MoodCheckIn';
 import { getActivitiesForMood, Activity } from '@/data/activityData';
 import { getMoodMessage, getMoodEmoji } from '@/utils/moodUtils';
@@ -32,6 +33,19 @@ const ActivityRecommendations: React.FC<ActivityRecommendationsProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
       <div className="max-w-4xl mx-auto">
+        {/* Back button */}
+        <div className="mb-6">
+          <Button
+            onClick={onBackToMoodCheck}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Mood Check-in
+          </Button>
+        </div>
+
         <div className="text-center mb-8">
           <div className="text-6xl mb-4 float">{moodEmoji}</div>
           <h1 className="text-3xl font-bold text-slate-700 mb-4">

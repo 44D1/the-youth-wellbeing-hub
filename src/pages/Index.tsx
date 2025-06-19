@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import LoginPage from '@/components/LoginPage';
 import MoodCheckIn from '@/components/MoodCheckIn';
 import ActivityRecommendations from '@/components/ActivityRecommendations';
+import AIChatScreen from '@/components/AIChatScreen';
 import JournalingActivity from '@/components/activities/JournalingActivity';
 import BreathingActivity from '@/components/activities/BreathingActivity';
 import MoodSharingActivity from '@/components/activities/MoodSharingActivity';
@@ -15,7 +17,7 @@ import { MoodType } from '@/components/MoodCheckIn';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-type AppState = 'login' | 'mood-check' | 'activities' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
+type AppState = 'login' | 'mood-check' | 'activities' | 'ai-chat' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
 
 const Index = () => {
   const [appState, setAppState] = useState<AppState>('login');
@@ -80,6 +82,14 @@ const Index = () => {
     setSelectedMood(null);
   };
 
+  const handleOpenAIChat = () => {
+    setAppState('ai-chat');
+  };
+
+  const handleCloseAIChat = () => {
+    setAppState('mood-check');
+  };
+
   const handleActivitySelect = (activityType: string) => {
     switch (activityType) {
       case 'journaling':
@@ -139,6 +149,14 @@ const Index = () => {
         return (
           <MoodCheckIn
             onMoodSelect={handleMoodSelect}
+            onOpenAIChat={handleOpenAIChat}
+            userName={currentUser}
+          />
+        );
+      case 'ai-chat':
+        return (
+          <AIChatScreen
+            onClose={handleCloseAIChat}
             userName={currentUser}
           />
         );

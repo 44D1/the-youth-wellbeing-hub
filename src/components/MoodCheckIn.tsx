@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import MoodChatbot from './MoodChatbot';
 import LogoutButton from './LogoutButton';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +19,10 @@ interface MoodOption {
 
 interface MoodCheckInProps {
   onMoodSelect: (mood: MoodType) => void;
+  onBackToMoodCheck?: () => void;
+  onOpenAIChat?: () => void;
   userName?: string;
+  showBackButton?: boolean;
 }
 
 const moodOptions: MoodOption[] = [
@@ -28,7 +33,13 @@ const moodOptions: MoodOption[] = [
   { id: 'very-happy', emoji: '😄', label: 'Very Happy', color: 'from-green-400 to-green-500' },
 ];
 
-const MoodCheckIn: React.FC<MoodCheckInProps> = ({ onMoodSelect, userName }) => {
+const MoodCheckIn: React.FC<MoodCheckInProps> = ({ 
+  onMoodSelect, 
+  onBackToMoodCheck, 
+  onOpenAIChat, 
+  userName, 
+  showBackButton = false 
+}) => {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -92,16 +103,31 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({ onMoodSelect, userName }) => 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header with logout button */}
+        {/* Header with back button and logout button */}
         <div className="flex justify-between items-start mb-8">
+          {showBackButton && onBackToMoodCheck && (
+            <Button
+              onClick={onBackToMoodCheck}
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-800"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+          )}
+          
           <div className="text-center flex-1">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-700 mb-2">
-              Welcome back{userName ? `, ${userName}` : ''}! 
-            </h1>
-            <p className="text-xl text-slate-600 gentle-pulse">
-              How are you feeling today?
-            </p>
+            <div className="bg-white px-6 py-3 rounded-lg shadow-sm border border-slate-200 inline-block mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-700 mb-2">
+                Welcome back{userName ? `, ${userName}` : ''}! 
+              </h1>
+              <p className="text-xl text-slate-600 gentle-pulse">
+                How are you feeling today?
+              </p>
+            </div>
           </div>
+          
           <LogoutButton className="ml-4" />
         </div>
 
@@ -145,10 +171,19 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({ onMoodSelect, userName }) => 
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-4">
           <p className="text-sm text-slate-500">
             Your mood check-ins help us provide personalized support for your wellbeing journey
           </p>
+          
+          {onOpenAIChat && (
+            <Button
+              onClick={onOpenAIChat}
+              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg"
+            >
+              Chat with our Helper AI
+            </Button>
+          )}
         </div>
       </div>
 
