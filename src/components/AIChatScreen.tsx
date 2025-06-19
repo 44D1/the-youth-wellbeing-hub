@@ -138,8 +138,8 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
                         : 'bg-gray-700 text-white'
                     }`}
                   >
-                    <p className="text-sm leading-relaxed">{message.text}</p>
-                    <p className="text-xs opacity-70 mt-2">
+                    <p className="text-sm leading-relaxed text-white">{message.text}</p>
+                    <p className="text-xs opacity-70 mt-2 text-white">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
