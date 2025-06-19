@@ -50,7 +50,14 @@ const AIChatbot: React.FC<AIChatbotProps> = ({ userName, onMoodDetected }) => {
       if (error) throw error;
 
       if (data) {
-        setMessages(data);
+        // Transform the data to match our Message interface
+        const transformedMessages: Message[] = data.map(item => ({
+          id: item.id,
+          message: item.message,
+          sender: item.sender as 'user' | 'ai',
+          created_at: item.created_at
+        }));
+        setMessages(transformedMessages);
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
@@ -220,8 +227,8 @@ const AIChatbot: React.FC<AIChatbotProps> = ({ userName, onMoodDetected }) => {
               {messages.length === 0 ? (
                 <div className="text-center text-slate-500 mt-8">
                   <Bot className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-                  <p>Start a conversation with your AI wellness companion!</p>
-                  <p className="text-sm mt-2">I'm here to listen and support your mental wellbeing.</p>
+                  <p className="text-slate-700">Start a conversation with your AI wellness companion!</p>
+                  <p className="text-sm mt-2 text-slate-600">I'm here to listen and support your mental wellbeing.</p>
                 </div>
               ) : (
                 messages.map((msg) => (
@@ -276,7 +283,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({ userName, onMoodDetected }) => {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message here..."
-                className="flex-1 text-slate-700"
+                className="flex-1 text-slate-700 placeholder:text-slate-500"
                 disabled={isLoading}
               />
               <Button
