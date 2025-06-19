@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Heart, Save } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface JournalingEntry {
   id: string;
   content: string;
   date: string;
   timestamp: number;
+  word_count?: number;
 }
 
 interface JournalingActivityProps {
@@ -21,6 +24,52 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
   const [journalEntry, setJournalEntry] = useState('');
   const [savedEntries, setSavedEntries] = useState<JournalingEntry[]>([]);
   const [wordCount, setWordCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadSavedEntries();
+  }, []);
+
+  const loadSavedEntries = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('journal_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading journal entries:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load previous entries.",
+          variant: "destructive",
+        });
+      } else {
+        const formattedEntries = data?.map(entry => ({
+          id: entry.id,
+          content: entry.content,
+          date: formatDate(new Date(entry.created_at).getTime()),
+          timestamp: new Date(entry.created_at).getTime(),
+          word_count: entry.word_count || 0
+        })) || [];
+        setSavedEntries(formattedEntries);
+      }
+    } catch (error) {
+      console.error('Error loading journal entries:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getPrompts = () => {
     const prompts = {
@@ -80,21 +129,74 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
     }
   };
 
-  const handleSave = () => {
-    if (journalEntry.trim()) {
+  const handleSave = async () => {
+    if (!journalEntry.trim()) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('journal_entries')
+        .insert({
+          user_id: user.id,
+          mood: mood,
+          content: journalEntry.trim(),
+          word_count: wordCount
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
       const newEntry: JournalingEntry = {
-        id: Date.now().toString(),
-        content: journalEntry,
-        date: formatDate(Date.now()),
-        timestamp: Date.now()
+        id: data.id,
+        content: data.content,
+        date: formatDate(new Date(data.created_at).getTime()),
+        timestamp: new Date(data.created_at).getTime(),
+        word_count: data.word_count || 0
       };
+
       setSavedEntries([newEntry, ...savedEntries]);
       setJournalEntry('');
       setWordCount(0);
+
+      toast({
+        title: "Entry Saved",
+        description: "Your journal entry has been saved successfully!",
+        className: "bg-white border-green-200 text-slate-900",
+      });
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your journal entry. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const sortedEntries = [...savedEntries].sort((a, b) => b.timestamp - a.timestamp);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-purple-600">Loading your journal...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
@@ -155,21 +257,24 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
               <Button 
                 onClick={handleSave}
                 className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-                disabled={!journalEntry.trim()}
+                disabled={!journalEntry.trim() || isSaving}
               >
                 <Save className="w-4 h-4 mr-2" />
-                Save Entry
+                {isSaving ? 'Saving...' : 'Save Entry'}
               </Button>
             </div>
 
-            {sortedEntries.length > 0 && (
+            {savedEntries.length > 0 && (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4">Your Previous Reflections</h3>
                 <div className="space-y-4">
-                  {sortedEntries.map((entry) => (
+                  {savedEntries.map((entry) => (
                     <div key={entry.id} className="p-4 bg-green-50 rounded-lg border border-green-100">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-sm font-medium text-green-700">{entry.date}</span>
+                        {entry.word_count && (
+                          <span className="text-xs text-green-600">{entry.word_count} words</span>
+                        )}
                       </div>
                       <p className="text-slate-700 whitespace-pre-wrap">{entry.content}</p>
                     </div>

@@ -1,15 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Plus, X, Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface RoutineItem {
   id: string;
   text: string;
   time: string;
   completed: boolean;
+  notes?: string;
+  saved?: boolean; // Track if this is saved to database
 }
 
 interface RoutineTrackingActivityProps {
@@ -21,29 +25,163 @@ const RoutineTrackingActivity: React.FC<RoutineTrackingActivityProps> = ({ onBac
   const [newItemText, setNewItemText] = useState('');
   const [newItemTime, setNewItemTime] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const addRoutineItem = () => {
-    if (newItemText.trim() && newItemTime) {
-      const newItem: RoutineItem = {
-        id: Date.now().toString(),
-        text: newItemText.trim(),
-        time: newItemTime,
-        completed: false
-      };
-      setRoutineItems([...routineItems, newItem].sort((a, b) => a.time.localeCompare(b.time)));
-      setNewItemText('');
-      setNewItemTime('');
+  useEffect(() => {
+    loadRoutineEntries();
+  }, [selectedDate]);
+
+  const loadRoutineEntries = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('routine_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('entry_date', selectedDate)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading routine entries:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load routine entries.",
+          variant: "destructive",
+        });
+      } else {
+        const formattedEntries = data?.map(entry => ({
+          id: entry.id,
+          text: entry.activity,
+          time: '09:00', // Default time since we don't store time in DB
+          completed: entry.completed || false,
+          notes: entry.notes || '',
+          saved: true
+        })) || [];
+        setRoutineItems(formattedEntries);
+      }
+    } catch (error) {
+      console.error('Error loading routine entries:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const removeRoutineItem = (id: string) => {
+  const saveRoutineItem = async (item: RoutineItem) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      if (item.saved) {
+        // Update existing item
+        const { error } = await supabase
+          .from('routine_entries')
+          .update({
+            activity: item.text,
+            completed: item.completed,
+            notes: item.notes || ''
+          })
+          .eq('id', item.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new item
+        const { data, error } = await supabase
+          .from('routine_entries')
+          .insert({
+            user_id: user.id,
+            activity: item.text,
+            entry_date: selectedDate,
+            completed: item.completed,
+            notes: item.notes || ''
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Update the item with the database ID
+        setRoutineItems(prev => prev.map(prevItem => 
+          prevItem.id === item.id 
+            ? { ...prevItem, id: data.id, saved: true }
+            : prevItem
+        ));
+      }
+    } catch (error) {
+      console.error('Error saving routine item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save routine item.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addRoutineItem = async () => {
+    if (newItemText.trim() && newItemTime) {
+      const tempId = Date.now().toString();
+      const newItem: RoutineItem = {
+        id: tempId,
+        text: newItemText.trim(),
+        time: newItemTime,
+        completed: false,
+        saved: false
+      };
+
+      setRoutineItems(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)));
+      setNewItemText('');
+      setNewItemTime('');
+
+      // Save to database
+      await saveRoutineItem(newItem);
+    }
+  };
+
+  const removeRoutineItem = async (id: string) => {
+    const item = routineItems.find(item => item.id === id);
+    
+    if (item?.saved) {
+      try {
+        const { error } = await supabase
+          .from('routine_entries')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error deleting routine item:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete routine item.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setRoutineItems(routineItems.filter(item => item.id !== id));
   };
 
-  const toggleComplete = (id: string) => {
-    setRoutineItems(routineItems.map(item => 
+  const toggleComplete = async (id: string) => {
+    const updatedItems = routineItems.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
-    ));
+    );
+    setRoutineItems(updatedItems);
+
+    // Save to database
+    const item = updatedItems.find(item => item.id === id);
+    if (item) {
+      await saveRoutineItem(item);
+    }
   };
 
   const onDragStart = (e: React.DragEvent, itemId: string) => {
@@ -78,6 +216,17 @@ const RoutineTrackingActivity: React.FC<RoutineTrackingActivityProps> = ({ onBac
 
   const completedCount = routineItems.filter(item => item.completed).length;
   const progressPercentage = routineItems.length > 0 ? (completedCount / routineItems.length) * 100 : 0;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-purple-600">Loading your routine...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 p-4">
@@ -192,6 +341,9 @@ const RoutineTrackingActivity: React.FC<RoutineTrackingActivityProps> = ({ onBac
                               {item.text}
                             </span>
                             <div className="text-sm text-slate-500">{item.time}</div>
+                            {item.saved && (
+                              <div className="text-xs text-purple-600">Saved</div>
+                            )}
                           </div>
                         </div>
                         <Button
@@ -216,6 +368,7 @@ const RoutineTrackingActivity: React.FC<RoutineTrackingActivityProps> = ({ onBac
                 <li>• Start with 3-5 manageable habits</li>
                 <li>• Check off completed items to track progress</li>
                 <li>• Be consistent but flexible with timing</li>
+                <li>• Your entries are automatically saved</li>
               </ul>
             </div>
           </CardContent>
