@@ -52,6 +52,16 @@ const ActivityRecommendations: React.FC<ActivityRecommendationsProps> = ({
           ))}
         </div>
 
+        <div className="flex justify-center mb-8">
+          <Button
+            onClick={onBackToMoodCheck}
+            variant="outline"
+            className="border-purple-200 text-purple-600 hover:bg-purple-50"
+          >
+            Back to Chat
+          </Button>
+        </div>
+
         <div className="text-center">
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg max-w-md mx-auto">
             <p className="text-sm text-red-700 mb-2 font-medium">

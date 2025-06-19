@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import LoginPage from '@/components/LoginPage';
-import MoodCheckIn from '@/components/MoodCheckIn';
+import AIChatbot from '@/components/AIChatbot';
 import ActivityRecommendations from '@/components/ActivityRecommendations';
 import JournalingActivity from '@/components/activities/JournalingActivity';
 import BreathingActivity from '@/components/activities/BreathingActivity';
@@ -16,7 +16,7 @@ import { MoodType } from '@/components/MoodCheckIn';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-type AppState = 'login' | 'mood-check' | 'activities' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
+type AppState = 'login' | 'chat' | 'activities' | 'journaling' | 'breathing' | 'mood-sharing' | 'support' | 'stretching' | 'goal-setting' | 'routine-tracking' | 'daily-challenge' | 'playlist';
 
 const Index = () => {
   const [appState, setAppState] = useState<AppState>('login');
@@ -36,7 +36,7 @@ const Index = () => {
         
         if (session?.user) {
           setCurrentUser(session.user.email?.split('@')[0] || '');
-          setAppState('mood-check');
+          setAppState('chat');
         } else {
           setAppState('login');
           setCurrentUser('');
@@ -52,7 +52,7 @@ const Index = () => {
       
       if (session?.user) {
         setCurrentUser(session.user.email?.split('@')[0] || '');
-        setAppState('mood-check');
+        setAppState('chat');
       } else {
         setAppState('login');
       }
@@ -66,13 +66,32 @@ const Index = () => {
     console.log('Login handler called for:', email);
   };
 
-  const handleMoodSelect = (mood: MoodType) => {
-    setSelectedMood(mood);
-    setAppState('activities');
+  const handleMoodDetected = async (mood: string) => {
+    // Convert detected mood to MoodType and save to database
+    let moodType: MoodType = 'neutral';
+    if (mood === 'happy') moodType = 'happy';
+    else if (mood === 'sad') moodType = 'sad';
+    
+    setSelectedMood(moodType);
+    
+    // Save mood check-in to database
+    try {
+      await supabase.from('mood_checkins').insert({
+        user_id: user?.id,
+        mood: moodType
+      });
+    } catch (error) {
+      console.error('Error saving mood check-in:', error);
+    }
+    
+    // Automatically show activities after mood detection
+    setTimeout(() => {
+      setAppState('activities');
+    }, 2000);
   };
 
-  const handleBackToMoodCheck = () => {
-    setAppState('mood-check');
+  const handleBackToChat = () => {
+    setAppState('chat');
     setSelectedMood(null);
   };
 
@@ -129,18 +148,18 @@ const Index = () => {
     switch (appState) {
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
-      case 'mood-check':
+      case 'chat':
         return (
-          <MoodCheckIn
-            onMoodSelect={handleMoodSelect}
+          <AIChatbot
             userName={currentUser}
+            onMoodDetected={handleMoodDetected}
           />
         );
       case 'activities':
         return selectedMood ? (
           <ActivityRecommendations
             selectedMood={selectedMood}
-            onBackToMoodCheck={handleBackToMoodCheck}
+            onBackToMoodCheck={handleBackToChat}
             onActivitySelect={handleActivitySelect}
           />
         ) : null;
