@@ -63,13 +63,13 @@ const StretchingActivity: React.FC<StretchingActivityProps> = ({ onBack }) => {
               
               {showVideo && (
                 <div className="bg-gray-100 rounded-lg p-8 mb-6">
-                  <div className="bg-gradient-to-br from-green-400 to-blue-500 rounded-lg p-12 text-center">
-                    <Play className="w-16 h-16 mx-auto mb-4 text-white" />
-                    <h3 className="text-xl font-semibold mb-2 text-white">5-Minute Stretching Routine</h3>
-                    <p className="mb-4 text-white">Follow along with gentle stretches</p>
+                  <div className="bg-gradient-to-br from-green-400 to-blue-500 rounded-lg p-12 text-white text-center">
+                    <Play className="w-16 h-16 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">5-Minute Stretching Routine</h3>
+                    <p className="mb-4">Follow along with gentle stretches</p>
                     <div className="bg-white/20 rounded p-4 text-left text-sm">
-                      <p className="font-semibold mb-2 text-white">Instructions:</p>
-                      <ul className="space-y-1 text-white">
+                      <p className="font-semibold mb-2">Instructions:</p>
+                      <ul className="space-y-1">
                         <li>• Neck rolls (30 seconds each direction)</li>
                         <li>• Shoulder shrugs (1 minute)</li>
                         <li>• Arm circles (30 seconds each direction)</li>
