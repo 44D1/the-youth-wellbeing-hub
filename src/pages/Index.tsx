@@ -38,6 +38,28 @@ const Index = () => {
     return !hasCompletedSetup && !savedNickname;
   };
 
+  const saveAppState = (state: AppState) => {
+    if (user) {
+      localStorage.setItem(`app_state_${user.id}`, state);
+    }
+  };
+
+  const getSavedAppState = (userId: string): AppState | null => {
+    const savedState = localStorage.getItem(`app_state_${userId}`);
+    return savedState as AppState || null;
+  };
+
+  const saveMoodState = (mood: MoodType) => {
+    if (user) {
+      localStorage.setItem(`selected_mood_${user.id}`, mood);
+    }
+  };
+
+  const getSavedMoodState = (userId: string): MoodType | null => {
+    const savedMood = localStorage.getItem(`selected_mood_${userId}`);
+    return savedMood as MoodType || null;
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -58,11 +80,23 @@ const Index = () => {
             setHasSetNickname(false);
             setAppState('nickname-prompt');
           } else {
-            // Returning user - use saved nickname or email name
+            // Returning user - use saved nickname or email name and restore previous state
             const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
             setCurrentUser(savedNickname || emailName);
             setHasSetNickname(true);
-            setAppState('mood-check');
+            
+            // Restore previous app state and mood if available
+            const savedState = getSavedAppState(session.user.id);
+            const savedMood = getSavedMoodState(session.user.id);
+            
+            if (savedState && savedState !== 'login' && savedState !== 'nickname-prompt') {
+              setAppState(savedState);
+              if (savedMood) {
+                setSelectedMood(savedMood);
+              }
+            } else {
+              setAppState('mood-check');
+            }
           }
         } else {
           // User logged out or not authenticated
@@ -93,11 +127,23 @@ const Index = () => {
           setHasSetNickname(false);
           setAppState('nickname-prompt');
         } else {
-          // Returning user - use saved nickname or email name
+          // Returning user - use saved nickname or email name and restore previous state
           const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
           setCurrentUser(savedNickname || emailName);
           setHasSetNickname(true);
-          setAppState('mood-check');
+          
+          // Restore previous app state and mood if available
+          const savedState = getSavedAppState(session.user.id);
+          const savedMood = getSavedMoodState(session.user.id);
+          
+          if (savedState && savedState !== 'login' && savedState !== 'nickname-prompt') {
+            setAppState(savedState);
+            if (savedMood) {
+              setSelectedMood(savedMood);
+            }
+          } else {
+            setAppState('mood-check');
+          }
         }
       } else {
         setAppState('login');
@@ -124,63 +170,83 @@ const Index = () => {
       setCurrentUser(nickname);
       setHasSetNickname(true);
       setAppState('mood-check');
+      saveAppState('mood-check');
     }
   };
 
   const handleMoodSelect = (mood: MoodType) => {
     setSelectedMood(mood);
     setAppState('activities');
+    saveMoodState(mood);
+    saveAppState('activities');
   };
 
   const handleBackToMoodCheck = () => {
     setAppState('mood-check');
     setSelectedMood(null);
+    saveAppState('mood-check');
+    if (user) {
+      localStorage.removeItem(`selected_mood_${user.id}`);
+    }
   };
 
   const handleOpenAIChat = () => {
     setAppState('ai-chat');
+    saveAppState('ai-chat');
   };
 
   const handleCloseAIChat = () => {
     setAppState('mood-check');
+    saveAppState('mood-check');
   };
 
   const handleOpenMoodHistory = () => {
     setAppState('mood-history');
+    saveAppState('mood-history');
   };
 
   const handleOpenResources = () => {
     setAppState('resources');
+    saveAppState('resources');
   };
 
   const handleActivitySelect = (activityType: string) => {
     switch (activityType) {
       case 'journaling':
         setAppState('journaling');
+        saveAppState('journaling');
         break;
       case 'breathing':
         setAppState('breathing');
+        saveAppState('breathing');
         break;
       case 'mood-sharing':
         setAppState('mood-sharing');
+        saveAppState('mood-sharing');
         break;
       case 'support':
         setAppState('support');
+        saveAppState('support');
         break;
       case 'stretching':
         setAppState('stretching');
+        saveAppState('stretching');
         break;
       case 'goal-setting':
         setAppState('goal-setting');
+        saveAppState('goal-setting');
         break;
       case 'routine-tracking':
         setAppState('routine-tracking');
+        saveAppState('routine-tracking');
         break;
       case 'daily-challenge':
         setAppState('daily-challenge');
+        saveAppState('daily-challenge');
         break;
       case 'playlist':
         setAppState('playlist');
+        saveAppState('playlist');
         break;
       default:
         console.log(`Activity ${activityType} not implemented yet`);
@@ -189,6 +255,7 @@ const Index = () => {
 
   const handleBackToActivities = () => {
     setAppState('activities');
+    saveAppState('activities');
   };
 
   if (isLoading) {
