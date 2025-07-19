@@ -288,7 +288,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </button>
             
-            {!isSignUp && false && ( // Disabled until SMTP is configured
+            {!isSignUp && (
               <div>
                 <button 
                   onClick={handleForgotPassword}
