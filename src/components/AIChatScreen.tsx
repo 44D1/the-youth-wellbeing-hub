@@ -93,7 +93,7 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
+    <div className="min-h-screen bg-black p-4">
       <div className="max-w-4xl mx-auto h-screen flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-gray-800/50 backdrop-blur-sm rounded-t-lg border-b border-gray-700">
