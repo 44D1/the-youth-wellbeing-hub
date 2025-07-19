@@ -117,12 +117,12 @@ const BreathingActivity: React.FC<BreathingActivityProps> = ({ onBack }) => {
                 <p className="text-slate-600 mb-4">Watch these guided breathing exercises for additional support:</p>
                 <div className="space-y-2">
                   <a 
-                    href="https://www.youtube.com/watch?v=ZhJyFpKTrCw" 
+                    href="https://www.youtube.com/watch?v=tybOi4hjZFQ" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="block p-3 bg-white rounded border border-blue-300 hover:bg-blue-50 transition-colors"
                   >
-                    <span className="text-slate-700">🎥 4-7-8 Breathing Technique for Anxiety Relief</span>
+                    <span className="text-slate-700">🎥 Box Breathing Exercise for Anxiety Relief</span>
                   </a>
                   <a 
                     href="https://www.youtube.com/watch?v=YRPh_GaiL8s" 
