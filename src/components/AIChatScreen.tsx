@@ -180,8 +180,7 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
               onKeyPress={handleKeyPress}
               placeholder="Type your message here..."
               disabled={isLoading}
-              className="flex-1 bg-gray-700 border-gray-600 placeholder:text-gray-400 focus:border-purple-500"
-              style={{ color: 'white !important' }}
+              className="flex-1 bg-gray-700 border-gray-600 placeholder:text-gray-400 focus:border-purple-500 chat-input-white-text"
             />
             <Button
               onClick={sendMessage}

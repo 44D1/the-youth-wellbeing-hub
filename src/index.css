@@ -148,3 +148,12 @@
 .bg-gradient-to-br p:not(.text-white):not(.text-slate-50):not(.text-gray-50) {
   @apply text-slate-700 !important;
 }
+
+/* Force white text in chat input */
+.chat-input-white-text {
+  color: #ffffff !important;
+}
+
+.chat-input-white-text input {
+  color: #ffffff !important;
+}
