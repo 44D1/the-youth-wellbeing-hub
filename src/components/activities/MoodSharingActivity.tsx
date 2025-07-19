@@ -80,12 +80,8 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
-    const day = date.getDate();
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    const month = months[date.getMonth()];
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
