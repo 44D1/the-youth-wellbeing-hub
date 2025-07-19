@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, Star, CheckCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Star, CheckCircle, Trophy } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Challenge {
   id: string;
@@ -19,6 +21,9 @@ interface DailyChallengeActivityProps {
 const DailyChallengeActivity: React.FC<DailyChallengeActivityProps> = ({ onBack }) => {
   const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [completedChallenges, setCompletedChallenges] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const challenges: Challenge[] = [
     {
@@ -138,6 +143,34 @@ const DailyChallengeActivity: React.FC<DailyChallengeActivityProps> = ({ onBack 
     localStorage.setItem('dailyChallenge', JSON.stringify(newChallenge));
   };
 
+  const loadCompletedChallenges = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('challenge_completions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('completed', true)
+        .order('completion_date', { ascending: false });
+
+      if (error) {
+        console.error('Error loading completed challenges:', error);
+      } else {
+        setCompletedChallenges(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading completed challenges:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const challenge = getDailyChallenge();
     setCurrentChallenge(challenge);
@@ -146,12 +179,66 @@ const DailyChallengeActivity: React.FC<DailyChallengeActivityProps> = ({ onBack 
     const completedDate = localStorage.getItem('challengeCompletedDate');
     const today = new Date().toDateString();
     setIsCompleted(completedDate === today);
+    
+    loadCompletedChallenges();
   }, []);
 
-  const markAsCompleted = () => {
-    setIsCompleted(true);
-    const today = new Date().toDateString();
-    localStorage.setItem('challengeCompletedDate', today);
+  const markAsCompleted = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save your progress.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Save to database
+      const { data, error } = await supabase
+        .from('challenge_completions')
+        .insert({
+          user_id: user.id,
+          challenge_type: currentChallenge?.category || 'General',
+          challenge_title: currentChallenge?.title || 'Daily Challenge',
+          completed: true,
+          completion_date: new Date().toISOString().split('T')[0]
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving challenge completion:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save your progress.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      setIsCompleted(true);
+      const today = new Date().toDateString();
+      localStorage.setItem('challengeCompletedDate', today);
+      
+      // Add to completed challenges list
+      setCompletedChallenges([data, ...completedChallenges]);
+      
+      toast({
+        title: "Challenge Completed!",
+        description: "Great job! Your accomplishment has been saved.",
+      });
+    } catch (error) {
+      console.error('Error marking challenge as completed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your progress.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -264,6 +351,51 @@ const DailyChallengeActivity: React.FC<DailyChallengeActivityProps> = ({ onBack 
                 <li>• Every small step counts towards personal growth</li>
               </ul>
             </div>
+
+            {/* Completed Challenges List */}
+            {completedChallenges.length > 0 && (
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
+                <div className="flex items-center justify-center mb-4">
+                  <Trophy className="w-6 h-6 text-yellow-500 mr-2" />
+                  <h3 className="text-xl font-semibold text-slate-700">Your Accomplishments</h3>
+                </div>
+                <p className="text-slate-600 text-center mb-4">
+                  Look at all the amazing things you've accomplished! 🎉
+                </p>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {completedChallenges.map((challenge, index) => (
+                    <div
+                      key={challenge.id}
+                      className="bg-white/70 p-4 rounded-lg border border-green-100 flex items-center justify-between hover:bg-white/90 transition-all duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-slate-700">{challenge.challenge_title}</h4>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(challenge.challenge_type)}`}>
+                              {challenge.challenge_type}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {new Date(challenge.completion_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-2xl">🏆</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-slate-600">
+                    <span className="font-semibold text-green-600">{completedChallenges.length}</span> challenges completed!
+                    Keep up the amazing work! ✨
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
