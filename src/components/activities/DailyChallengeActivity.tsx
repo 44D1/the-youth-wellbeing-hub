@@ -367,25 +367,32 @@ const DailyChallengeActivity: React.FC<DailyChallengeActivityProps> = ({ onBack 
                   {completedChallenges.map((challenge, index) => (
                     <div
                       key={challenge.id}
-                      className="bg-white/70 p-4 rounded-lg border border-green-100 flex items-center justify-between hover:bg-white/90 transition-all duration-200"
+                      className="bg-white/70 p-4 rounded-lg border border-green-100 hover:bg-white/90 transition-all duration-200"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-slate-700">{challenge.challenge_title}</h4>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(challenge.challenge_type)}`}>
-                              {challenge.challenge_type}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {new Date(challenge.completion_date).toLocaleDateString()}
-                            </span>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3 flex-1">
+                          <div className="flex-shrink-0 mt-1">
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-slate-700 mb-1">{challenge.challenge_title}</h4>
+                            {challenge.challenge_description && (
+                              <p className="text-sm text-slate-600 mb-2 leading-relaxed">
+                                {challenge.challenge_description}
+                              </p>
+                            )}
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(challenge.challenge_type)}`}>
+                                {challenge.challenge_type}
+                              </span>
+                              <span className="text-xs text-slate-500">
+                                {new Date(challenge.completion_date).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        <div className="text-2xl ml-3">🏆</div>
                       </div>
-                      <div className="text-2xl">🏆</div>
                     </div>
                   ))}
                 </div>
