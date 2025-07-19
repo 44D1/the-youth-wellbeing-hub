@@ -203,6 +203,7 @@ const DailyChallengeActivity: React.FC<DailyChallengeActivityProps> = ({ onBack 
           user_id: user.id,
           challenge_type: currentChallenge?.category || 'General',
           challenge_title: currentChallenge?.title || 'Daily Challenge',
+          challenge_description: currentChallenge?.description || '',
           completed: true,
           completion_date: new Date().toISOString().split('T')[0]
         })
