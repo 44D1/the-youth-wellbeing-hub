@@ -276,7 +276,7 @@ const RoutineTrackingActivity: React.FC<RoutineTrackingActivityProps> = ({ onBac
                   value={newItemText}
                   onChange={(e) => setNewItemText(e.target.value)}
                   placeholder="e.g., Morning meditation, Study session..."
-                  className="bg-white border-purple-200 focus:border-purple-400"
+                  className="bg-white border-purple-200 focus:border-purple-400 placeholder:text-black"
                 />
               </div>
               <div>
