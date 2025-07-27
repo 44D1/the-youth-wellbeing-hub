@@ -75,15 +75,15 @@ const DailyBadge: React.FC<DailyBadgeProps> = ({ className }) => {
       };
     } else if (streakDays === 1) {
       return {
-        icon: <Star className="w-4 h-4 animate-pulse" />,
+        icon: <Star className="w-4 h-4" />,
         text: '1 Day',
-        className: 'bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg animate-scale-in'
+        className: 'bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg'
       };
     } else if (streakDays === 2) {
       return {
-        icon: <Star className="w-4 h-4 animate-pulse" />,
+        icon: <Star className="w-4 h-4 animate-pulse opacity-70" />,
         text: '2 Days',
-        className: 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30 animate-scale-in'
+        className: 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30'
       };
     } else if (streakDays === 3) {
       return {
@@ -93,21 +93,21 @@ const DailyBadge: React.FC<DailyBadgeProps> = ({ className }) => {
       };
     } else if (streakDays <= 4) {
       return {
-        icon: <Award className="w-4 h-4 animate-pulse" />,
+        icon: <Award className="w-4 h-4 animate-pulse animate-bounce" />,
         text: `${streakDays} Days`,
         className: 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-xl shadow-pink-500/50 animate-scale-in'
       };
     } else if (streakDays <= 6) {
       return {
-        icon: <Award className="w-4 h-4 animate-pulse" />,
+        icon: <Award className="w-4 h-4 animate-pulse animate-bounce" />,
         text: `${streakDays} Days`,
-        className: 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-2xl shadow-orange-500/60 animate-scale-in'
+        className: 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-2xl shadow-orange-500/60 animate-scale-in hover:animate-pulse'
       };
     } else {
       return {
-        icon: <Trophy className="w-4 h-4 animate-pulse" />,
+        icon: <Trophy className="w-4 h-4 animate-pulse animate-bounce drop-shadow-lg" />,
         text: 'Week Master!',
-        className: 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-white shadow-2xl shadow-yellow-500/70 animate-scale-in border-2 border-yellow-300'
+        className: 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-white shadow-2xl shadow-yellow-500/70 animate-scale-in border-2 border-yellow-300 hover:animate-pulse hover:shadow-yellow-400/80'
       };
     }
   };
