@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Send, Bot, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { freeAI } from '@/utils/freeAI';
 
 interface Message {
   id: string;
@@ -59,15 +59,17 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
-        body: { message: inputMessage, mood: 'neutral' }
-      });
+      // Get conversation history for context
+      const conversationHistory = messages
+        .slice(-4) // Last 4 messages for context
+        .map(msg => `${msg.sender}: ${msg.text}`);
 
-      if (error) throw error;
+      // Generate response using free AI
+      const response = await freeAI.generateResponse(inputMessage, conversationHistory);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response,
+        text: response,
         sender: 'ai',
         timestamp: new Date(),
       };
