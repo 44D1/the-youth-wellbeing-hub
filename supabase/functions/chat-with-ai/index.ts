@@ -17,6 +17,28 @@ serve(async (req) => {
   try {
     const { message, mood } = await req.json();
 
+    // Check for self-harm indicators
+    const selfHarmKeywords = ['hurt myself', 'end it', 'suicide', 'kill myself', 'want to die', 'better off dead', 'self harm', 'cut myself', 'overdose', 'jump off'];
+    const hasSelfHarmContent = selfHarmKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (hasSelfHarmContent) {
+      const emergencyResponse = `I'm very concerned about what you've shared and want you to get immediate support. Please reach out for help right now:
+
+🆘 **EMERGENCY**: Call 000 if you're in immediate danger
+📞 **Lifeline Australia**: 13 11 14 (24/7 crisis support)
+💬 **Crisis Text Line**: Text HELLO to 741741
+🌐 **Beyond Blue**: 1300 22 4636
+👤 **Suicide Call Back Service**: 1300 659 467
+
+You matter, your life has value, and there are people who want to help you through this difficult time. Please reach out to one of these services or go to your nearest emergency department.`;
+
+      return new Response(JSON.stringify({ response: emergencyResponse }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const systemPrompt = `You are a compassionate AI assistant specializing in mental health and wellbeing support. The user has just indicated they are feeling "${mood}". 
 
 Your role is to:
@@ -26,6 +48,7 @@ Your role is to:
 - Keep responses concise but meaningful (2-3 sentences max)
 - Never provide medical advice, but suggest professional help when appropriate
 - Focus on immediate comfort and practical next steps
+- If someone mentions any form of self-harm, ALWAYS prioritize their safety and direct them to Australian emergency services: 000 for emergencies, Lifeline 13 11 14, or Beyond Blue 1300 22 4636
 
 Remember to be warm, non-judgmental, and supportive in your tone.`;
 
