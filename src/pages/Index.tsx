@@ -30,12 +30,25 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasSetNickname, setHasSetNickname] = useState(false);
 
-  const checkIfFirstTimeUser = (userId: string) => {
-    // Check if user has completed initial setup
-    const hasCompletedSetup = localStorage.getItem(`setup_completed_${userId}`);
-    const savedNickname = localStorage.getItem(`nickname_${userId}`);
-    
-    return !hasCompletedSetup && !savedNickname;
+  const checkIfFirstTimeUser = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error checking user profile:', error);
+        return true; // Assume first time user if error
+      }
+      
+      // User is first time if they don't have a nickname set
+      return !data?.nickname;
+    } catch (error) {
+      console.error('Error checking first time user:', error);
+      return true; // Assume first time user if error
+    }
   };
 
   const saveAppState = (state: AppState) => {
@@ -69,10 +82,76 @@ const Index = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          const emailName = session.user.email?.split('@')[0] || '';
-          
+          // Defer async operations to avoid blocking the auth state change
+          setTimeout(async () => {
+            const emailName = session.user.email?.split('@')[0] || '';
+            
+            try {
+              // Check if this is the user's first time
+              const isFirstTime = await checkIfFirstTimeUser(session.user.id);
+              
+              if (isFirstTime) {
+                // First time user - show nickname prompt
+                setCurrentUser(emailName);
+                setHasSetNickname(false);
+                setAppState('nickname-prompt');
+              } else {
+                // Returning user - get nickname from database
+                const { data } = await supabase
+                  .from('profiles')
+                  .select('nickname')
+                  .eq('user_id', session.user.id)
+                  .single();
+                
+                const nickname = data?.nickname || emailName;
+                setCurrentUser(nickname);
+                setHasSetNickname(true);
+                
+                // Restore previous app state and mood if available
+                const savedState = getSavedAppState(session.user.id);
+                const savedMood = getSavedMoodState(session.user.id);
+                
+                if (savedState && savedState !== 'login' && savedState !== 'nickname-prompt') {
+                  setAppState(savedState);
+                  if (savedMood) {
+                    setSelectedMood(savedMood);
+                  }
+                } else {
+                  setAppState('mood-check');
+                }
+              }
+            } catch (error) {
+              console.error('Error during auth state setup:', error);
+              // Fallback to nickname prompt on error
+              setCurrentUser(emailName);
+              setHasSetNickname(false);
+              setAppState('nickname-prompt');
+            }
+            setIsLoading(false);
+          }, 0);
+        } else {
+          // User logged out or not authenticated
+          setAppState('login');
+          setCurrentUser('');
+          setSelectedMood(null);
+          setHasSetNickname(false);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', session);
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const emailName = session.user.email?.split('@')[0] || '';
+        
+        try {
           // Check if this is the user's first time
-          const isFirstTime = checkIfFirstTimeUser(session.user.id);
+          const isFirstTime = await checkIfFirstTimeUser(session.user.id);
           
           if (isFirstTime) {
             // First time user - show nickname prompt
@@ -80,9 +159,15 @@ const Index = () => {
             setHasSetNickname(false);
             setAppState('nickname-prompt');
           } else {
-            // Returning user - use saved nickname or email name and restore previous state
-            const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
-            setCurrentUser(savedNickname || emailName);
+            // Returning user - get nickname from database
+            const { data } = await supabase
+              .from('profiles')
+              .select('nickname')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            const nickname = data?.nickname || emailName;
+            setCurrentUser(nickname);
             setHasSetNickname(true);
             
             // Restore previous app state and mood if available
@@ -98,52 +183,12 @@ const Index = () => {
               setAppState('mood-check');
             }
           }
-        } else {
-          // User logged out or not authenticated
-          setAppState('login');
-          setCurrentUser('');
-          setSelectedMood(null);
-          setHasSetNickname(false);
-        }
-        setIsLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const emailName = session.user.email?.split('@')[0] || '';
-        
-        // Check if this is the user's first time
-        const isFirstTime = checkIfFirstTimeUser(session.user.id);
-        
-        if (isFirstTime) {
-          // First time user - show nickname prompt
+        } catch (error) {
+          console.error('Error during initial session setup:', error);
+          // Fallback to nickname prompt on error
           setCurrentUser(emailName);
           setHasSetNickname(false);
           setAppState('nickname-prompt');
-        } else {
-          // Returning user - use saved nickname or email name and restore previous state
-          const savedNickname = localStorage.getItem(`nickname_${session.user.id}`);
-          setCurrentUser(savedNickname || emailName);
-          setHasSetNickname(true);
-          
-          // Restore previous app state and mood if available
-          const savedState = getSavedAppState(session.user.id);
-          const savedMood = getSavedMoodState(session.user.id);
-          
-          if (savedState && savedState !== 'login' && savedState !== 'nickname-prompt') {
-            setAppState(savedState);
-            if (savedMood) {
-              setSelectedMood(savedMood);
-            }
-          } else {
-            setAppState('mood-check');
-          }
         }
       } else {
         setAppState('login');
@@ -160,17 +205,27 @@ const Index = () => {
     // This is just for any additional logic if needed
   };
 
-  const handleNicknameSet = (nickname: string) => {
+  const handleNicknameSet = async (nickname: string) => {
     if (user) {
-      // Save the nickname
-      localStorage.setItem(`nickname_${user.id}`, nickname);
-      // Mark setup as completed so nickname prompt won't show again
-      localStorage.setItem(`setup_completed_${user.id}`, 'true');
-      
-      setCurrentUser(nickname);
-      setHasSetNickname(true);
-      setAppState('mood-check');
-      saveAppState('mood-check');
+      try {
+        // Save the nickname to the database
+        const { error } = await supabase
+          .from('profiles')
+          .update({ nickname })
+          .eq('user_id', user.id);
+        
+        if (error) {
+          console.error('Error saving nickname:', error);
+          return;
+        }
+        
+        setCurrentUser(nickname);
+        setHasSetNickname(true);
+        setAppState('mood-check');
+        saveAppState('mood-check');
+      } catch (error) {
+        console.error('Error in handleNicknameSet:', error);
+      }
     }
   };
 
