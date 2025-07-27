@@ -30,7 +30,7 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
 
   useEffect(() => {
     loadSavedEntries();
-  }, []);
+  }, [mood]); // Re-load when mood changes
 
   const loadSavedEntries = async () => {
     try {
@@ -45,6 +45,7 @@ const JournalingActivity: React.FC<JournalingActivityProps> = ({ onBack, mood })
         .from('journal_entries')
         .select('*')
         .eq('user_id', user.id)
+        .eq('mood', mood)
         .order('created_at', { ascending: false });
 
       if (error) {
