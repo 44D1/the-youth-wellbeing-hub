@@ -97,7 +97,7 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
+    <div className="fixed inset-0 bg-black">
       <div className="max-w-4xl mx-auto h-full flex flex-col p-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-gray-800/50 backdrop-blur-sm rounded-t-lg border-b border-gray-700">
