@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Send, Bot, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { freeAI } from '@/utils/freeAI';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -59,17 +59,19 @@ const AIChatScreen: React.FC<AIChatScreenProps> = ({ onClose, userName }) => {
     setIsLoading(true);
 
     try {
-      // Get conversation history for context
-      const conversationHistory = messages
-        .slice(-4) // Last 4 messages for context
-        .map(msg => `${msg.sender}: ${msg.text}`);
+      // Call Cohere edge function
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: {
+          message: inputMessage,
+          mood: 'chat'
+        }
+      });
 
-      // Generate response using free AI
-      const response = await freeAI.generateResponse(inputMessage, conversationHistory);
+      if (error) throw error;
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: response,
+        text: data.response,
         sender: 'ai',
         timestamp: new Date(),
       };
