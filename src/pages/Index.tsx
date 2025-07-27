@@ -32,11 +32,14 @@ const Index = () => {
 
   const checkIfFirstTimeUser = async (userId: string): Promise<boolean> => {
     try {
+      console.log('Checking if first time user for userId:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('nickname')
         .eq('user_id', userId)
         .single();
+      
+      console.log('Profile query result:', { data, error });
       
       if (error && error.code === 'PGRST116') {
         // No profile found - first time user
@@ -49,7 +52,7 @@ const Index = () => {
       
       // User is first time if they don't have a nickname set
       const isFirstTime = !data?.nickname;
-      console.log('Profile check result:', { data, isFirstTime });
+      console.log('Profile check result:', { data, isFirstTime, nickname: data?.nickname });
       return isFirstTime;
     } catch (error) {
       console.error('Error checking first time user:', error);
