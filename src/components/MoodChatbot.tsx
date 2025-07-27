@@ -42,13 +42,21 @@ const MoodChatbot: React.FC<MoodChatbotProps> = ({ mood, userName }) => {
     setIsLoading(true);
 
     try {
+      console.log('Starting message send process...');
+      console.log('User message:', inputMessage);
+      console.log('Current messages:', messages);
+      
       // Get conversation history for context
       const conversationHistory = messages
         .slice(-4) // Last 4 messages for context
         .map(msg => `${msg.sender}: ${msg.text}`);
+      
+      console.log('Conversation history:', conversationHistory);
 
       // Generate response using free AI
+      console.log('Calling freeAI.generateResponse...');
       const response = await freeAI.generateResponse(inputMessage, conversationHistory);
+      console.log('Received response:', response);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -57,9 +65,16 @@ const MoodChatbot: React.FC<MoodChatbotProps> = ({ mood, userName }) => {
         timestamp: new Date(),
       };
 
+      console.log('Adding AI message to state:', aiMessage);
       setMessages(prev => [...prev, aiMessage]);
+      console.log('Message send completed successfully');
     } catch (error) {
       console.error('Error sending message:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        name: error instanceof Error ? error.name : 'Unknown error type'
+      });
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",

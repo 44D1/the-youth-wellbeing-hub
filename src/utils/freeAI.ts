@@ -8,21 +8,25 @@ export class FreeAIService {
   }
 
   async generateResponse(userMessage: string, conversationHistory: string[] = []): Promise<string> {
-    console.log('Generating response for:', userMessage);
+    console.log('FreeAI: generateResponse called with:', { userMessage, conversationHistory });
     
     try {
+      console.log('FreeAI: Starting response generation...');
+      
       if (!this.isInitialized) {
+        console.log('FreeAI: Not initialized, calling initialize...');
         await this.initialize();
       }
 
       // For now, use intelligent pattern matching with pre-written supportive responses
       // This ensures immediate functionality while being genuinely helpful
+      console.log('FreeAI: Calling getContextualResponse...');
       const responses = this.getContextualResponse(userMessage, conversationHistory);
       
-      console.log('Generated response:', responses);
+      console.log('FreeAI: Generated response:', responses);
       return responses;
     } catch (error) {
-      console.error('Error generating AI response:', error);
+      console.error('FreeAI: Error generating AI response:', error);
       return "I'm here to support you, though I'm having a technical moment. How are you feeling today, and what would be most helpful for you right now?";
     }
   }
