@@ -69,27 +69,45 @@ const DailyBadge: React.FC<DailyBadgeProps> = ({ className }) => {
   const getBadgeContent = () => {
     if (streakDays === 0) {
       return {
-        icon: <Star className="w-3 h-3" />,
+        icon: <Star className="w-4 h-4" />,
         text: 'Start Journey',
-        color: 'bg-gray-500'
+        className: 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-md'
       };
-    } else if (streakDays <= 3) {
+    } else if (streakDays === 1) {
       return {
-        icon: <Star className="w-3 h-3" />,
-        text: `${streakDays} Day${streakDays > 1 ? 's' : ''}`,
-        color: 'bg-blue-500'
+        icon: <Star className="w-4 h-4 animate-pulse" />,
+        text: '1 Day',
+        className: 'bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg animate-scale-in'
+      };
+    } else if (streakDays === 2) {
+      return {
+        icon: <Star className="w-4 h-4 animate-pulse" />,
+        text: '2 Days',
+        className: 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30 animate-scale-in'
+      };
+    } else if (streakDays === 3) {
+      return {
+        icon: <Star className="w-4 h-4 animate-pulse" />,
+        text: '3 Days',
+        className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xl shadow-purple-500/40 animate-scale-in'
+      };
+    } else if (streakDays <= 4) {
+      return {
+        icon: <Award className="w-4 h-4 animate-pulse" />,
+        text: `${streakDays} Days`,
+        className: 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-xl shadow-pink-500/50 animate-scale-in'
       };
     } else if (streakDays <= 6) {
       return {
-        icon: <Award className="w-3 h-3" />,
+        icon: <Award className="w-4 h-4 animate-pulse" />,
         text: `${streakDays} Days`,
-        color: 'bg-purple-500'
+        className: 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-2xl shadow-orange-500/60 animate-scale-in'
       };
     } else {
       return {
-        icon: <Trophy className="w-3 h-3" />,
+        icon: <Trophy className="w-4 h-4 animate-pulse" />,
         text: 'Week Master!',
-        color: 'bg-yellow-500'
+        className: 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-white shadow-2xl shadow-yellow-500/70 animate-scale-in border-2 border-yellow-300'
       };
     }
   };
@@ -97,7 +115,7 @@ const DailyBadge: React.FC<DailyBadgeProps> = ({ className }) => {
   const badgeContent = getBadgeContent();
 
   return (
-    <Badge className={`${badgeContent.color} text-white hover:opacity-90 transition-opacity flex items-center gap-1 ${className}`}>
+    <Badge className={`${badgeContent.className} hover:opacity-90 transition-all duration-300 flex items-center gap-1 ${className}`}>
       {badgeContent.icon}
       {badgeContent.text}
     </Badge>
