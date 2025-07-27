@@ -89,10 +89,16 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
 
   const generatePostcardImage = async (): Promise<Blob | null> => {
     const canvas = canvasRef.current;
-    if (!canvas) return null;
+    if (!canvas) {
+      console.log('Canvas not found');
+      return null;
+    }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
+    if (!ctx) {
+      console.log('Canvas context not available');
+      return null;
+    }
 
     // Set canvas size
     canvas.width = 800;
@@ -108,12 +114,23 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Add rounded corners effect
+    // Add rounded corners effect using arc instead of roundRect for better compatibility
+    ctx.save();
     ctx.globalCompositeOperation = 'destination-in';
     ctx.beginPath();
-    ctx.roundRect(0, 0, canvas.width, canvas.height, 20);
+    const cornerRadius = 20;
+    ctx.moveTo(cornerRadius, 0);
+    ctx.lineTo(canvas.width - cornerRadius, 0);
+    ctx.quadraticCurveTo(canvas.width, 0, canvas.width, cornerRadius);
+    ctx.lineTo(canvas.width, canvas.height - cornerRadius);
+    ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - cornerRadius, canvas.height);
+    ctx.lineTo(cornerRadius, canvas.height);
+    ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - cornerRadius);
+    ctx.lineTo(0, cornerRadius);
+    ctx.quadraticCurveTo(0, 0, cornerRadius, 0);
+    ctx.closePath();
     ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
 
     // Add emoji
     ctx.font = '80px Arial';
@@ -159,9 +176,17 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.fillText('Created with MindfulMe', canvas.width / 2, canvas.height - 30);
 
-    // Convert to blob
+    // Convert to blob with better quality
     return new Promise((resolve) => {
-      canvas.toBlob(resolve, 'image/png', 0.9);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          console.log('Generated blob size:', blob.size, 'bytes');
+          console.log('Generated blob type:', blob.type);
+        } else {
+          console.error('Failed to generate blob');
+        }
+        resolve(blob);
+      }, 'image/png', 1.0);
     });
   };
 
@@ -176,19 +201,28 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
     }
 
     try {
+      console.log('Starting image generation...');
       const imageBlob = await generatePostcardImage();
       if (!imageBlob) {
         throw new Error('Failed to generate postcard image');
       }
 
+      const file = new File([imageBlob], 'joyful-moment.png', { type: 'image/png' });
+      console.log('Created file:', file.name, file.size, 'bytes, type:', file.type);
+
       const shareData = {
         title: 'My Joyful Moment',
         text: message,
-        files: [new File([imageBlob], 'joyful-moment.png', { type: 'image/png' })]
+        files: [file]
       };
 
+      console.log('Share data:', shareData);
+      console.log('Can share files:', navigator.canShare && navigator.canShare(shareData));
+
       if (navigator.canShare && navigator.canShare(shareData)) {
+        console.log('Using Web Share API...');
         await navigator.share(shareData);
+        console.log('Share completed successfully');
       } else {
         // Fallback: download the image
         const url = URL.createObjectURL(imageBlob);
