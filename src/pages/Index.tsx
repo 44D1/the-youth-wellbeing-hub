@@ -38,13 +38,19 @@ const Index = () => {
         .eq('user_id', userId)
         .single();
       
-      if (error) {
+      if (error && error.code === 'PGRST116') {
+        // No profile found - first time user
+        console.log('No profile found for user, showing nickname prompt');
+        return true;
+      } else if (error) {
         console.error('Error checking user profile:', error);
         return true; // Assume first time user if error
       }
       
       // User is first time if they don't have a nickname set
-      return !data?.nickname;
+      const isFirstTime = !data?.nickname;
+      console.log('Profile check result:', { data, isFirstTime });
+      return isFirstTime;
     } catch (error) {
       console.error('Error checking first time user:', error);
       return true; // Assume first time user if error
