@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,18 +21,19 @@ interface MoodSharingActivityProps {
 
 const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => {
   const [message, setMessage] = useState('');
-  const [selectedBackground, setSelectedBackground] = useState('bg-gradient-to-br from-pink-400 to-purple-500');
+  const [selectedBackgroundIndex, setSelectedBackgroundIndex] = useState(0);
   const [savedMoments, setSavedMoments] = useState<JoyfulMoment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
 
   const backgrounds = [
-    'bg-gradient-to-br from-pink-400 to-purple-500',
-    'bg-gradient-to-br from-green-400 to-blue-500',
-    'bg-gradient-to-br from-yellow-400 to-orange-500',
-    'bg-gradient-to-br from-blue-400 to-purple-500',
-    'bg-gradient-to-br from-emerald-400 to-cyan-500'
+    { class: 'bg-gradient-to-br from-pink-400 to-purple-500', colors: ['#f472b6', '#a855f7'] },
+    { class: 'bg-gradient-to-br from-green-400 to-blue-500', colors: ['#4ade80', '#3b82f6'] },
+    { class: 'bg-gradient-to-br from-yellow-400 to-orange-500', colors: ['#facc15', '#f97316'] },
+    { class: 'bg-gradient-to-br from-blue-400 to-purple-500', colors: ['#60a5fa', '#a855f7'] },
+    { class: 'bg-gradient-to-br from-emerald-400 to-cyan-500', colors: ['#34d399', '#06b6d4'] }
   ];
 
   useEffect(() => {
@@ -86,41 +87,132 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
     return `${day}/${month}/${year}`;
   };
 
-  const handleShare = () => {
-    const shareText = message || "Feeling great today! 😄";
-    const shareUrl = window.location.href;
+  const generatePostcardImage = async (): Promise<Blob | null> => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Set canvas size
+    canvas.width = 800;
+    canvas.height = 500;
+
+    // Create gradient background
+    const selectedBg = backgrounds[selectedBackgroundIndex];
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, selectedBg.colors[0]);
+    gradient.addColorStop(1, selectedBg.colors[1]);
+
+    // Fill background
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Add rounded corners effect
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, canvas.width, canvas.height, 20);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Add emoji
+    ctx.font = '80px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.fillText('😄', canvas.width / 2, 180);
+
+    // Add message text
+    const displayMessage = message || "What's making you happy today?";
+    ctx.font = 'bold 32px Arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
     
-    if (navigator.share) {
-      navigator.share({
-        title: 'My Mood Today',
-        text: shareText,
-        url: shareUrl
+    // Word wrap
+    const words = displayMessage.split(' ');
+    const lines = [];
+    let currentLine = '';
+    const maxWidth = canvas.width - 100;
+
+    for (const word of words) {
+      const testLine = currentLine + word + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && currentLine !== '') {
+        lines.push(currentLine.trim());
+        currentLine = word + ' ';
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+
+    // Draw text lines
+    const lineHeight = 40;
+    const startY = 280;
+    lines.forEach((line, index) => {
+      ctx.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+    });
+
+    // Add app branding
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('Created with MindfulMe', canvas.width / 2, canvas.height - 30);
+
+    // Convert to blob
+    return new Promise((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 0.9);
+    });
+  };
+
+  const handleShare = async () => {
+    if (!message.trim()) {
+      toast({
+        title: "Please add a message",
+        description: "Add a message to your postcard before sharing.",
+        variant: "destructive",
       });
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      const platforms = [
-        { name: 'Twitter', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}` },
-        { name: 'WhatsApp', url: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}` },
-        { name: 'Discord', url: `https://discord.com/channels/@me` },
-        { name: 'Instagram', url: 'https://www.instagram.com/' },
-        { name: 'Snapchat', url: 'https://www.snapchat.com/' }
-      ];
-      
-      // Create a simple modal with sharing options
-      const shareModal = document.createElement('div');
-      shareModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      shareModal.innerHTML = `
-        <div class="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
-          <h3 class="text-lg font-semibold mb-4">Share on:</h3>
-          <div class="space-y-2">
-            ${platforms.map(platform => 
-              `<a href="${platform.url}" target="_blank" class="block p-2 border rounded hover:bg-gray-50 text-center">${platform.name}</a>`
-            ).join('')}
-          </div>
-          <button onclick="this.parentElement.parentElement.remove()" class="mt-4 w-full p-2 bg-gray-200 rounded">Cancel</button>
-        </div>
-      `;
-      document.body.appendChild(shareModal);
+      return;
+    }
+
+    try {
+      const imageBlob = await generatePostcardImage();
+      if (!imageBlob) {
+        throw new Error('Failed to generate postcard image');
+      }
+
+      const shareData = {
+        title: 'My Joyful Moment',
+        text: message,
+        files: [new File([imageBlob], 'joyful-moment.png', { type: 'image/png' })]
+      };
+
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: download the image
+        const url = URL.createObjectURL(imageBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'joyful-moment.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Image Downloaded",
+          description: "Your postcard has been downloaded. You can now share it manually!",
+          className: "bg-white border-green-200 text-slate-900",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing postcard:', error);
+      toast({
+        title: "Share Failed",
+        description: "Failed to share postcard. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -143,7 +235,7 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
         .insert({
           user_id: user.id,
           message: message.trim(),
-          background_style: selectedBackground
+          background_style: backgrounds[selectedBackgroundIndex].class
         })
         .select()
         .single();
@@ -235,18 +327,21 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
                 {backgrounds.map((bg, index) => (
                   <button
                     key={index}
-                    onClick={() => setSelectedBackground(bg)}
-                    className={`w-16 h-16 rounded-lg ${bg} border-4 transition-all ${
-                      selectedBackground === bg ? 'border-purple-400 scale-110' : 'border-transparent'
+                    onClick={() => setSelectedBackgroundIndex(index)}
+                    className={`w-16 h-16 rounded-lg ${bg.class} border-4 transition-all ${
+                      selectedBackgroundIndex === index ? 'border-purple-400 scale-110' : 'border-transparent'
                     }`}
                   />
                 ))}
               </div>
             </div>
 
+            {/* Hidden canvas for image generation */}
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+
             <div className="text-center">
               <h3 className="text-lg font-semibold text-slate-700 mb-4">Preview</h3>
-              <div className={`w-80 h-48 mx-auto rounded-lg ${selectedBackground} flex items-center justify-center p-6 text-white text-center shadow-lg`}>
+              <div className={`w-80 h-48 mx-auto rounded-lg ${backgrounds[selectedBackgroundIndex].class} flex items-center justify-center p-6 text-white text-center shadow-lg`}>
                 <div>
                   <div className="text-4xl mb-4">😄</div>
                   <p className="text-lg font-medium">
