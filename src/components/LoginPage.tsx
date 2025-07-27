@@ -128,6 +128,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         toast({
           title: "Account Created!",
           description: "Please check your email to verify your account before signing in.",
+          variant: "success",
         });
         setIsSignUp(false);
       }
