@@ -133,7 +133,7 @@ export class FreeAIService {
 
     // Crisis or serious concern responses
     if (message.includes('hurt myself') || message.includes('end it') || message.includes('suicide')) {
-      return "I'm really concerned about you and want you to get the support you deserve. Please reach out to a crisis helpline or trusted person immediately. In the US, you can call 988 for the Suicide & Crisis Lifeline. You matter, and there are people who want to help you through this.";
+      return "I'm really concerned about you and want you to get the support you deserve. Please reach out immediately: 🆘 Call 000 for emergencies, 📞 Lifeline Australia 13 11 14 (24/7), or 🌐 Beyond Blue 1300 22 4636. You matter, and there are people who want to help you through this.";
     }
 
     // Specific life situations and concerns
