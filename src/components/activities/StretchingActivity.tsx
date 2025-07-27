@@ -58,7 +58,7 @@ const StretchingActivity: React.FC<StretchingActivityProps> = ({ onBack }) => {
                 className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 mb-4"
               >
                 <Play className="w-4 h-4 mr-2" />
-                {showVideo ? 'Hide' : 'Show'} Built-in Video
+                {showVideo ? 'Hide' : 'Show'} Instructions
               </Button>
               
               {showVideo && (
