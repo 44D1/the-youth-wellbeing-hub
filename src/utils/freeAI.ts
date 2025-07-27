@@ -136,36 +136,54 @@ export class FreeAIService {
       return "I'm really concerned about you and want you to get the support you deserve. Please reach out to a crisis helpline or trusted person immediately. In the US, you can call 988 for the Suicide & Crisis Lifeline. You matter, and there are people who want to help you through this.";
     }
 
-    // Conversation starters and general responses
-    const conversationLength = conversationHistory.length;
-    
-    if (conversationLength === 0) {
-      // First interaction
-      const firstResponses = [
-        "I'm so glad you're here and willing to share with me. How are you feeling in this moment, and what brought you here today?",
-        "Welcome! I'm here to listen and support you. What's something that's been on your mind lately that you'd like to talk about?",
-        "Thank you for reaching out. It takes courage to start a conversation about our wellbeing. What would you like to explore together?"
-      ];
-      return this.getRandomResponse(firstResponses, recentResponses);
-    } else if (conversationLength < 3) {
-      // Early conversation
-      const earlyResponses = [
-        "I appreciate you sharing that with me. How does it feel to put those thoughts into words?",
-        "Thank you for being open with me. What else has been on your mind that you'd like to explore?",
-        "I hear you. Sometimes talking through our experiences can bring new clarity. What stands out most to you about what you just shared?"
-      ];
-      return this.getRandomResponse(earlyResponses, recentResponses);
-    } else {
-      // Ongoing conversation
-      const ongoingResponses = [
-        "As we continue talking, I'm noticing themes in what you're sharing. What feels most important for you to focus on right now?",
-        "You've been really thoughtful in our conversation. What insights are emerging for you as we talk?",
-        "I value the trust you're showing by continuing to share with me. What direction would feel most helpful for our conversation?",
-        "You're doing important work by reflecting on your experiences. What would you like to explore more deeply?",
-        "I'm curious about what you're discovering about yourself through our conversation. What's resonating most with you?"
-      ];
-      return this.getRandomResponse(ongoingResponses, recentResponses);
+    // Specific life situations and concerns
+    if (message.includes('work') || message.includes('job') || message.includes('boss') || message.includes('career')) {
+      return `I hear you're dealing with work-related challenges. Work stress is really common. Consider setting clearer boundaries between work and personal time, taking short breaks during your day, and having an honest conversation with your supervisor if needed. What specific work situation is bothering you most?`;
     }
+
+    if (message.includes('relationship') || message.includes('partner') || message.includes('boyfriend') || message.includes('girlfriend') || message.includes('marriage')) {
+      return `Relationship concerns can be emotionally draining. Good communication is key - try expressing your feelings using "I" statements rather than "you" statements. Also, make sure you're taking care of your own needs too. Sometimes couples counseling can provide helpful tools. What's the main relationship challenge you're facing?`;
+    }
+
+    if (message.includes('family') || message.includes('parents') || message.includes('mom') || message.includes('dad') || message.includes('sibling')) {
+      return `Family dynamics can be complex and emotionally charged. Remember that you can only control your own actions and responses, not others' behavior. Setting healthy boundaries while still showing love is possible. Sometimes family therapy or individual counseling can help navigate these relationships. What family situation is weighing on you?`;
+    }
+
+    if (message.includes('school') || message.includes('college') || message.includes('university') || message.includes('grades') || message.includes('exam')) {
+      return `Academic pressure is really challenging. Break large assignments into smaller tasks, create a study schedule that includes breaks, and don't hesitate to reach out to teachers or tutors for help. Remember that grades don't define your worth as a person. What specific school challenge are you dealing with?`;
+    }
+
+    if (message.includes('friend') || message.includes('social') || message.includes('people')) {
+      return `Social situations can be tricky to navigate. Good friendships require mutual respect and effort from both sides. It's okay to outgrow some friendships or set boundaries with people who drain your energy. Focus on quality connections over quantity. What's going on with your social situation?`;
+    }
+
+    if (message.includes('money') || message.includes('financial') || message.includes('bills') || message.includes('debt')) {
+      return `Financial stress affects mental health significantly. Start by listing all your expenses and income to see the full picture. Look for small ways to cut costs, consider talking to a financial counselor if available, and remember that your worth isn't tied to your bank account. What specific financial concern is causing you stress?`;
+    }
+
+    if (message.includes('health') || message.includes('sick') || message.includes('pain') || message.includes('medical')) {
+      return `Health concerns can be frightening and overwhelming. Make sure you're advocating for yourself with healthcare providers, seeking second opinions when needed, and focusing on what you can control like rest, nutrition, and stress management. Don't hesitate to ask for support from friends and family. What health issue is worrying you?`;
+    }
+
+    if (message.includes('future') || message.includes('plans') || message.includes('goals') || message.includes('direction')) {
+      return `Uncertainty about the future is incredibly common and anxiety-provoking. Focus on taking small steps forward rather than needing to see the whole path. Set short-term goals that align with your values, and remember that it's okay to change direction as you learn and grow. What aspect of your future feels most uncertain right now?`;
+    }
+
+    // Better general response that acknowledges what they said
+    const concernKeywords = ['problem', 'issue', 'trouble', 'difficult', 'hard', 'struggle', 'worry', 'concern', 'question'];
+    const hasConcern = concernKeywords.some(keyword => message.includes(keyword));
+    
+    if (hasConcern) {
+      return `I can hear that you're dealing with something challenging. While I may not have caught all the details, I want you to know that whatever you're going through is valid. Often it helps to break problems down into smaller parts - what feels like the most pressing aspect of what you're dealing with? I'm here to listen and offer support.`;
+    }
+
+    // Response for when they share something specific but not emotion-focused
+    if (message.length > 10) { // They wrote something substantial
+      return `Thank you for sharing that with me. I want to make sure I understand what you're going through. It sounds like there's something important on your mind. Can you tell me more about what's bothering you or what kind of support would be most helpful right now?`;
+    }
+
+    // Final fallback - acknowledge what they said and ask for clarification
+    return `I hear what you're saying, though I want to make sure I fully understand your situation. Based on what you've shared, it seems like you have something important on your mind. Could you help me understand what's bothering you most, or what specific kind of support you're looking for? I'm here to help in whatever way I can.`;
   }
 
   private getRandomResponse(responses: string[], recentResponses: string[]): string {
