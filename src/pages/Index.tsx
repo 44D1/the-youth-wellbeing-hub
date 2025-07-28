@@ -400,6 +400,7 @@ const Index = () => {
         return (
           <MoodSharingActivity
             onBack={handleBackToActivities}
+            mood={selectedMood}
           />
         );
       case 'support':

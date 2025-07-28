@@ -17,9 +17,10 @@ interface JoyfulMoment {
 
 interface MoodSharingActivityProps {
   onBack: () => void;
+  mood?: string;
 }
 
-const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => {
+const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack, mood }) => {
   const [message, setMessage] = useState('');
   const [selectedBackgroundIndex, setSelectedBackgroundIndex] = useState(0);
   const [savedMoments, setSavedMoments] = useState<JoyfulMoment[]>([]);
@@ -216,15 +217,8 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
         files: [file]
       };
 
-      console.log('Share data:', shareData);
-      console.log('Can share files:', navigator.canShare && navigator.canShare(shareData));
-
-      if (navigator.canShare && navigator.canShare(shareData)) {
-        console.log('Using Web Share API...');
-        await navigator.share(shareData);
-        console.log('Share completed successfully');
-      } else {
-        // Fallback: download the image
+      // For "Happy" and "Very Happy" moods, always download instead of sharing
+      if (mood === 'happy' || mood === 'very-happy') {
         const url = URL.createObjectURL(imageBlob);
         const a = document.createElement('a');
         a.href = url;
@@ -236,9 +230,35 @@ const MoodSharingActivity: React.FC<MoodSharingActivityProps> = ({ onBack }) => 
         
         toast({
           title: "Image Downloaded",
-          description: "Your postcard has been downloaded. You can now share it manually!",
+          description: "Your postcard has been downloaded!",
           className: "bg-white border-green-200 text-slate-900",
         });
+      } else {
+        // For other moods, use the original Web Share API with fallback
+        console.log('Share data:', shareData);
+        console.log('Can share files:', navigator.canShare && navigator.canShare(shareData));
+
+        if (navigator.canShare && navigator.canShare(shareData)) {
+          console.log('Using Web Share API...');
+          await navigator.share(shareData);
+          console.log('Share completed successfully');
+        } else {
+          // Fallback: download the image
+          const url = URL.createObjectURL(imageBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'joyful-moment.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          toast({
+            title: "Image Downloaded",
+            description: "Your postcard has been downloaded. You can now share it manually!",
+            className: "bg-white border-green-200 text-slate-900",
+          });
+        }
       }
     } catch (error) {
       console.error('Error sharing postcard:', error);
